@@ -97,6 +97,34 @@ struct MINESWEEPERGAME_API ICellMatrix {
 };
 
 template <typename CellType>
+struct MINESWEEPERGAME_API FMatrixNavigator {
+	FMatrixNavigator(const TSharedRef<ICellMatrix<CellType>>& matrix) {
+		_matrix = matrix;
+	}
+
+	TArray<FIntPoint> GetAdjacentsTo(const FIntPoint& InCoordinates, int squareUnitDistance = 1) {
+		check(_matrix.IsValid());
+		auto matrix = _matrix.Pin();
+		TArray<FIntPoint> adjacentCells;
+		for (int i = -squareUnitDistance; i <= squareUnitDistance; i++) {
+			for (int j = -squareUnitDistance; i <= squareUnitDistance; j++) {
+				if (i == 0 && j == 0) {
+					continue;
+				}
+				FIntPoint adjacentCoordinates(InCoordinates + FIntPoint(i, j));
+				if (matrix->Has(adjacentCoordinates)) {
+					adjacentCells.Add(adjacentCoordinates);
+				}
+			}
+		}
+		return adjacentCells;
+	}
+
+private:
+	TWeakPtr<ICellMatrix<CellType>> _matrix;
+};
+
+template <typename CellType>
 struct MINESWEEPERGAME_API TCellMatrix : public ICellMatrix<CellType> {
 	virtual ~TCellMatrix() = default;
 
@@ -208,13 +236,23 @@ struct FPlayingLogicState : public IMinesweeperGameLogicState {
 			OwnerStateMachine.Pin()->GoToState<FGameOverLogicState>();
 			break;
 		case EMinesweeperCellState::Empty:
+			_gameDataState.Pin()->Matrix->Get(coordinate).bIsCovered = false;
 			_uncoverAdjacents(coordinate);
 		}
 	}
 
 private:
 	void _uncoverAdjacents(const FMinesweeperCellCoordinate& coordinate) {
+		auto matrix = _gameDataState.Pin()->Matrix.ToSharedRef();
 
+		TArray<FIntPoint> adjacentCellsCoordinates = FMatrixNavigator<FMinesweeperCell>(matrix).GetAdjacentsTo(coordinate);
+		for (const auto& adjacentCellCoordinates : adjacentCellsCoordinates) {
+			auto& adjacentCell = matrix->Get(adjacentCellCoordinates);
+			if (adjacentCell.bIsCovered && adjacentCell.CellState == EMinesweeperCellState::Empty) {
+				adjacentCell.bIsCovered = false;
+				_uncoverAdjacents(adjacentCellCoordinates);
+			}
+		}
 	}
 };
 
