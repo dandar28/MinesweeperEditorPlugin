@@ -6,6 +6,8 @@
 #include "Misc/MessageDialog.h"
 #include "ToolMenus.h"
 
+#include "MinesweeperGameSession.h"
+
 static const FName MinesweeperEditorPluginTabName("MinesweeperEditorPlugin");
 
 #define LOCTEXT_NAMESPACE "FMinesweeperEditorPluginModule"
