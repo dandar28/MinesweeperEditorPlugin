@@ -147,7 +147,7 @@ struct MINESWEEPERGAMELOGICS_API TCellMatrix : public ICellMatrix<CellType> {
 	}
 
 	bool Has(const FIntPoint& InCoordinates) const {
-		return InCoordinates.X < _matrixSize.X && InCoordinates.Y < _matrixSize.Y;
+		return InCoordinates.X >= 0 && InCoordinates.Y >= 0 && InCoordinates.X < _matrixSize.X && InCoordinates.Y < _matrixSize.Y;
 	}
 
 	virtual FIntPoint GetSize() const { return _matrixSize; }
@@ -168,7 +168,7 @@ struct MINESWEEPERGAMELOGICS_API TFixedSizeCellMatrix : public ICellMatrix<CellT
 	}
 
 	bool Has(const FIntPoint& InCoordinates) const {
-		return InCoordinates.X < NumRows && InCoordinates.Y < NumCols;
+		return InCoordinates.X >= 0 && InCoordinates.Y >= 0 && InCoordinates.X < NumRows && InCoordinates.Y < NumCols;
 	}
 
 protected:

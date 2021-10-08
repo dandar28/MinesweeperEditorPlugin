@@ -83,6 +83,9 @@ void FPlayingLogicState::_uncoverAdjacents(const FMinesweeperCellCoordinate& InC
 
 	TArray<FIntPoint> AdjacentCellsCoordinates = FMatrixNavigator<FMinesweeperCell>(Matrix).GetAdjacentsTo(InCoordinates);
 	for (const auto& AdjacentCellCoordinates : AdjacentCellsCoordinates) {
+		if (!Matrix->Has(AdjacentCellCoordinates)) {
+			continue;
+		}
 		auto& AdjacentCell = Matrix->Get(AdjacentCellCoordinates);
 		if (AdjacentCell.bIsCovered && AdjacentCell.CellState == EMinesweeperCellState::Empty) {
 			AdjacentCell.bIsCovered = false;
