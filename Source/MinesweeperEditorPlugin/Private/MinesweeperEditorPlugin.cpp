@@ -70,7 +70,7 @@ void FMinesweeperEditorPluginModule::PluginButtonClicked()
 			]
 		];
 
-	MinesweeperGameWindow->GetOnWindowClosedEvent().AddLambda([GameSession]() {
+	MinesweeperGameWindow->GetOnWindowClosedEvent().AddLambda([GameSession](const TSharedRef<SWindow>& InClosedWindow) {
 		GameSession->Shutdown();
 	});
 
