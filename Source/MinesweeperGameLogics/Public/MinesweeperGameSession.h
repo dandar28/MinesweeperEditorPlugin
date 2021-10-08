@@ -223,6 +223,11 @@ private:
 	void _uncoverAdjacents(const FMinesweeperCellCoordinate& InCoordinates);
 };
 
+struct MINESWEEPERGAMELOGICS_API FMinesweeperGameSettings {
+	FIntPoint MatrixBoardSize;
+	int NumberOfMines = 0;
+};
+
 /**
  * \brief - Class hosting a game session of minesweeper
  */
@@ -235,6 +240,8 @@ public:
 	void Startup() override;	
 	void Shutdown() override;
 	bool IsRunning() const override;
+
+	void PrepareAndStartGame(const FMinesweeperGameSettings& InSettings);
 
 	void FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates);
 	void SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates);

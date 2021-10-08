@@ -92,7 +92,7 @@ void FPlayingLogicState::_uncoverAdjacents(const FMinesweeperCellCoordinate& InC
 void FMinesweeperGameSession::Startup() {
 	_bIsRunning = true;
 	_gameDataState = MakeShared<FMinesweeperGameDataState>();
-	_gameLogicStateMachine->GoToState<FPlayingLogicState>();
+	_gameLogicStateMachine->GoToState<FIdleLogicState>();
 }
 
 void FMinesweeperGameSession::Shutdown() {
@@ -102,6 +102,13 @@ void FMinesweeperGameSession::Shutdown() {
 }
 
 bool FMinesweeperGameSession::IsRunning() const { return _bIsRunning; }
+
+void FMinesweeperGameSession::PrepareAndStartGame(const FMinesweeperGameSettings& InSettings) {
+	check(IsRunning());
+	_gameDataState->RebuildMatrix(InSettings.MatrixBoardSize.X, InSettings.MatrixBoardSize.Y);
+	_gameDataState->ClearAndPlaceRandomMines(InSettings.NumberOfMines);
+	_gameLogicStateMachine->GoToState<FPlayingLogicState>();
+}
 
 void FMinesweeperGameSession::FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
 	check(IsRunning());
