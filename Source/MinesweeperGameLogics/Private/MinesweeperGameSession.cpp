@@ -9,6 +9,7 @@ void FGameStateMachine::GoToState(const TSharedRef<FAbstractLogicState>& InNewSt
 		_logicState->OnExit();
 	}
 
+	_logicState = InNewState;
 	InNewState->OwnerStateMachine = this->AsShared();
 	InNewState->OnEnter();
 }
