@@ -56,19 +56,19 @@ void FMinesweeperGameDataState::ClearAndPlaceRandomMines(int InNumberOfMines) {
 void FPlayingLogicState::FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
 	check(GameDataState.IsValid());
 
-	auto gameDataState = GameDataState.Pin();
-	check(gameDataState->Matrix->Has(InCoordinates));
-	FMinesweeperCell& cell = gameDataState->Matrix->Get(InCoordinates);
-	cell.bIsFlagged = !cell.bIsFlagged;
+	auto GameDataStatePinned = GameDataState.Pin();
+	check(GameDataStatePinned->Matrix->Has(InCoordinates));
+	FMinesweeperCell& Cell = GameDataStatePinned->Matrix->Get(InCoordinates);
+	Cell.bIsFlagged = !Cell.bIsFlagged;
 }
 
 void FPlayingLogicState::SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
 	check(GameDataState.IsValid());
 
-	auto gameDataState = GameDataState.Pin();
-	check(gameDataState->Matrix->Has(InCoordinates));
-	FMinesweeperCell& cell = gameDataState->Matrix->Get(InCoordinates);
-	switch (cell.CellState) {
+	auto GameDataStatePinned = GameDataState.Pin();
+	check(GameDataStatePinned->Matrix->Has(InCoordinates));
+	FMinesweeperCell& Cell = GameDataStatePinned->Matrix->Get(InCoordinates);
+	switch (Cell.CellState) {
 	case EMinesweeperCellState::Bomb:
 		OwnerStateMachine.Pin()->GoToState<FGameOverLogicState>();
 		break;
@@ -79,14 +79,14 @@ void FPlayingLogicState::SweepOnCell(const FMinesweeperCellCoordinate& InCoordin
 }
 
 void FPlayingLogicState::_uncoverAdjacents(const FMinesweeperCellCoordinate& InCoordinates) {
-	auto matrix = GameDataState.Pin()->Matrix.ToSharedRef();
+	auto Matrix = GameDataState.Pin()->Matrix.ToSharedRef();
 
-	TArray<FIntPoint> adjacentCellsCoordinates = FMatrixNavigator<FMinesweeperCell>(matrix).GetAdjacentsTo(InCoordinates);
-	for (const auto& adjacentCellCoordinates : adjacentCellsCoordinates) {
-		auto& adjacentCell = matrix->Get(adjacentCellCoordinates);
-		if (adjacentCell.bIsCovered && adjacentCell.CellState == EMinesweeperCellState::Empty) {
-			adjacentCell.bIsCovered = false;
-			_uncoverAdjacents(adjacentCellCoordinates);
+	TArray<FIntPoint> AdjacentCellsCoordinates = FMatrixNavigator<FMinesweeperCell>(Matrix).GetAdjacentsTo(InCoordinates);
+	for (const auto& AdjacentCellCoordinates : AdjacentCellsCoordinates) {
+		auto& AdjacentCell = Matrix->Get(AdjacentCellCoordinates);
+		if (AdjacentCell.bIsCovered && AdjacentCell.CellState == EMinesweeperCellState::Empty) {
+			AdjacentCell.bIsCovered = false;
+			_uncoverAdjacents(AdjacentCellCoordinates);
 		}
 	}
 }
