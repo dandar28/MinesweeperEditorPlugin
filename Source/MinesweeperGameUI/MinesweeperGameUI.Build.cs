@@ -12,7 +12,10 @@ public class MinesweeperGameUI : ModuleRules
 			new string[]
 			{
 				"Core",
-				"Engine"
+				"Engine",
+				"Slate",
+				"SlateCore",
+				"EditorStyle"
 			}
 			);
 	}
