@@ -234,5 +234,5 @@ public:
 private:
 	bool _bIsRunning = false;
 
-	FGameStateMachine _gameLogicStateMachine;
+	TSharedRef<FGameStateMachine> _gameLogicStateMachine = MakeShared<FGameStateMachine>();
 };

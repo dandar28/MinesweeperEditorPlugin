@@ -58,11 +58,11 @@ void FPlayingLogicState::_uncoverAdjacents(const FMinesweeperCellCoordinate& InC
 void FMinesweeperGameSession::Startup() {
 	_bIsRunning = true;
 	_gameDataState = MakeShared<FMinesweeperGameDataState>();
-	_gameLogicStateMachine.GoToState<FPlayingLogicState>();
+	_gameLogicStateMachine->GoToState<FPlayingLogicState>();
 }
 
 void FMinesweeperGameSession::Shutdown() {
-	_gameLogicStateMachine.GoToState<FIdleLogicState>();
+	_gameLogicStateMachine->GoToState<FIdleLogicState>();
 	_bIsRunning = false;
 	_gameDataState.Reset();
 }
@@ -71,10 +71,10 @@ bool FMinesweeperGameSession::IsRunning() const { return _bIsRunning; }
 
 void FMinesweeperGameSession::FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
 	check(IsRunning());
-	_gameLogicStateMachine.GetGameLogicStateAs<IMinesweeperGameLogicState>()->FlagOnCell(InCoordinates);
+	_gameLogicStateMachine->GetGameLogicStateAs<IMinesweeperGameLogicState>()->FlagOnCell(InCoordinates);
 }
 
 void FMinesweeperGameSession::SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
 	check(IsRunning());
-	_gameLogicStateMachine.GetGameLogicStateAs<IMinesweeperGameLogicState>()->SweepOnCell(InCoordinates);
+	_gameLogicStateMachine->GetGameLogicStateAs<IMinesweeperGameLogicState>()->SweepOnCell(InCoordinates);
 }
