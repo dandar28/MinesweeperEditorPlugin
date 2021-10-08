@@ -107,12 +107,12 @@ struct MINESWEEPERGAMELOGICS_API FMatrixNavigator {
 		check(_matrix.IsValid());
 		auto matrix = _matrix.Pin();
 		TArray<FIntPoint> adjacentCells;
-		for (int i = -InSquareUnitDistance; i <= InSquareUnitDistance; i++) {
-			for (int j = -InSquareUnitDistance; i <= InSquareUnitDistance; j++) {
-				if (i == 0 && j == 0) {
+		for (int CurrentColumn = -InSquareUnitDistance; CurrentColumn <= InSquareUnitDistance; CurrentColumn++) {
+			for (int CurrentRow = -InSquareUnitDistance; CurrentRow <= InSquareUnitDistance; CurrentRow++) {
+				if (CurrentColumn == 0 && CurrentRow == 0) {
 					continue;
 				}
-				FIntPoint adjacentCoordinates(InCoordinates + FIntPoint(i, j));
+				FIntPoint adjacentCoordinates(InCoordinates + FIntPoint(CurrentColumn, CurrentRow));
 				if (matrix->Has(adjacentCoordinates)) {
 					adjacentCells.Add(adjacentCoordinates);
 				}
