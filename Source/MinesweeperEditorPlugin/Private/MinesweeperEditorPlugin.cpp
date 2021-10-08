@@ -48,11 +48,14 @@ void FMinesweeperEditorPluginModule::ShutdownModule()
 
 void FMinesweeperEditorPluginModule::PluginButtonClicked()
 {
-	const FIntPoint MatrixSize = FIntPoint(9, 9);
+	FMinesweeperGameSettings GameSettings;
+	GameSettings.MatrixBoardSize.X = 9;
+	GameSettings.MatrixBoardSize.Y = 9;
+	GameSettings.NumberOfMines = 6;
 
 	const auto GameSession = MakeShared<FMinesweeperGameSession>();
 	GameSession->Startup();
-	GameSession->GetGameDataState()->RebuildMatrix(MatrixSize.X, MatrixSize.Y);
+	GameSession->PrepareAndStartGame(GameSettings);
 
 	TSharedRef<SWindow> MinesweeperGameWindow = SNew(SWindow)
 		.Title(FText::FromString(TEXT("Minesweeper Game Window")))
