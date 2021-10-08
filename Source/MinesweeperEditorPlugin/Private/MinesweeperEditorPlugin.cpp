@@ -7,6 +7,7 @@
 #include "ToolMenus.h"
 
 #include "MinesweeperGameSession.h"
+#include "MinesweeperGameBoard.h"
 
 static const FName MinesweeperEditorPluginTabName("MinesweeperEditorPlugin");
 
@@ -47,13 +48,21 @@ void FMinesweeperEditorPluginModule::ShutdownModule()
 
 void FMinesweeperEditorPluginModule::PluginButtonClicked()
 {
-	// Put your "OnButtonClicked" stuff here
-	FText DialogText = FText::Format(
-							LOCTEXT("PluginButtonDialogText", "Add code to {0} in {1} to override this button's actions"),
-							FText::FromString(TEXT("FMinesweeperEditorPluginModule::PluginButtonClicked()")),
-							FText::FromString(TEXT("MinesweeperEditorPlugin.cpp"))
-					   );
-	FMessageDialog::Open(EAppMsgType::Ok, DialogText);
+	TSharedRef<SWindow> MinesweeperGameWindow = SNew(SWindow)
+		.Title(FText::FromString(TEXT("Minesweeper Game Window")))
+		.ClientSize(FVector2D(800, 800))
+		.SupportsMaximize(true)
+		.SupportsMinimize(true)
+		[
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot()
+			.HAlign(HAlign_Fill)
+			.VAlign(VAlign_Fill)
+			[
+				SNew(SMinesweeperGameBoard)
+			]
+		];
+	FSlateApplication::Get().AddWindow(MinesweeperGameWindow, true);
 }
 
 void FMinesweeperEditorPluginModule::RegisterMenus()
