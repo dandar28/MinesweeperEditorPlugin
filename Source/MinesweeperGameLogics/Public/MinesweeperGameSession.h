@@ -86,6 +86,11 @@ struct MINESWEEPERGAMELOGICS_API ICellMatrix {
 	virtual CellType& Get(const FIntPoint& InCoordinates) = 0;
 	virtual bool Has(const FIntPoint& InCoordinates) const = 0;
 	virtual FIntPoint GetSize() const = 0;
+
+	virtual int GetNumberOfCells() const {
+		const FIntPoint MatrixSize = GetSize();
+		return MatrixSize.X * MatrixSize.Y;
+	}
 };
 
 template <typename CellType>
@@ -175,6 +180,9 @@ struct MINESWEEPERGAMELOGICS_API FMinesweeperGameDataState {
 	FMinesweeperMatrix Matrix;
 
 	void RebuildMatrix(int InWidth, int InHeight);
+
+	void ClearMatrixCells();
+	void ClearAndPlaceRandomMines(int InNumberOfMines);
 };
 
 using FMinesweeperCellCoordinate = FIntPoint;

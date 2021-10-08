@@ -16,6 +16,39 @@ void FGameStateMachine::GoToState(const TSharedRef<FAbstractLogicState>& InNewSt
 
 void FMinesweeperGameDataState::RebuildMatrix(int InWidth, int InHeight) {
 	Matrix = StaticCastSharedRef<ICellMatrix<FMinesweeperCell>>(MakeShared<TCellMatrix<FMinesweeperCell>>(InWidth, InHeight));
+
+	ClearMatrixCells();
+}
+
+void FMinesweeperGameDataState::ClearMatrixCells() {
+	check(Matrix.IsValid());
+
+	// Fill all cells with default empty mine cells
+	for (int CurrentColumn = 0; CurrentColumn < Matrix->GetSize().X; CurrentColumn++) {
+		for (int CurrentRow = 0; CurrentRow < Matrix->GetSize().Y; CurrentRow++) {
+			Matrix->Get(FMinesweeperCellCoordinate(CurrentColumn, CurrentRow)) = FMinesweeperCell();
+		}
+	}
+}
+
+void FMinesweeperGameDataState::ClearAndPlaceRandomMines(int InNumberOfMines) {
+	check(Matrix.IsValid());
+
+	const int NumberOfCells = Matrix->GetNumberOfCells();
+	check(NumberOfCells > 0);
+	check(InNumberOfMines <= NumberOfCells);
+
+	TArray<FMinesweeperCellCoordinate> FreeCells;
+	for (int CurrentColumn = 0; CurrentColumn < Matrix->GetSize().X; CurrentColumn++) {
+		for (int CurrentRow = 0; CurrentRow < Matrix->GetSize().Y; CurrentRow++) {
+			FreeCells.Add(FMinesweeperCellCoordinate(CurrentColumn, CurrentRow));
+		}
+	}
+
+	for (int MineIndex = 0; MineIndex < InNumberOfMines; MineIndex++) {
+		FMinesweeperCellCoordinate PickedFreeCell = FreeCells[FMath::RandRange(0, FreeCells.Num() - 1)];
+		Matrix->Get(PickedFreeCell).CellState = EMinesweeperCellState::Bomb;
+	}
 }
 
 void FPlayingLogicState::FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
