@@ -21,8 +21,30 @@ public:
 
 	void PopulateGrid();
 
+	void RunAction(const FMinesweeperCellCoordinate& InCoordinates);
+
+	void OnSelectedActionChanged(TSharedPtr<FText> InNewItem, ESelectInfo::Type InSelectType);
+	FText GetSelectedActionOption() const;
+
 private:
 
 	TSharedPtr<FMinesweeperGameSession> _gameSession;
 	TSharedPtr<SUniformGridPanel> _cellsGridPanel;
+
+	const TArray<TSharedPtr<FText>> _actionComboOptions = TArray<TSharedPtr<FText>>{
+		MakeShared<FText>(FText::FromString("Sweep")),
+		MakeShared<FText>(FText::FromString("Flag"))
+	};
+
+	using FActionFunction = TFunction<void(TSharedPtr<FMinesweeperGameSession>, const FMinesweeperCellCoordinate&)>;
+	const TArray<FActionFunction> _actionFunctions = TArray<FActionFunction>{
+		[](auto InGameSession, const auto& InCoordinates) {
+			InGameSession->SweepOnCell(InCoordinates);
+		},
+		[](auto InGameSession, const auto& InCoordinates) {
+			InGameSession->FlagOnCell(InCoordinates);
+		}
+	};
+
+	int32 _selectedActionIndex = 0;
 };

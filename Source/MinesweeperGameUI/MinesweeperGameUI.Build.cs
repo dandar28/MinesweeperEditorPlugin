@@ -13,6 +13,7 @@ public class MinesweeperGameUI : ModuleRules
 			{
 				"Core",
 				"Engine",
+				"InputCore",
 				"Slate",
 				"SlateCore",
 				"EditorStyle",

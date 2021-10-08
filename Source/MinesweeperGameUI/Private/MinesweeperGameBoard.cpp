@@ -12,19 +12,152 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 
 	ChildSlot
 		[
-			SNew(SOverlay)
-			+ SOverlay::Slot()
-			.HAlign(HAlign_Fill)
-			.VAlign(VAlign_Fill)
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot()			
+			.AutoHeight()
+			.Padding(12.0f, 0.0f, 12.0f, 12.0f)
 			[
-				SNew(SImage)
-				.ColorAndOpacity(FColor::Black)
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.HAlign(HAlign_Right)
+				.VAlign(VAlign_Center)
+				.Padding(0.0f)
+				[
+					SNew(STextBlock)
+					.Text(FText::FromString(TEXT("Width")))
+					.Justification(ETextJustify::Type::Left)
+					.MinDesiredWidth(60)
+				]
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.HAlign(HAlign_Right)
+				.VAlign(VAlign_Center)
+				.Padding(0.0f)
+				[
+					SNew(SEditableTextBox)
+					.Text(FText::FromString(TEXT("0")))
+					.Justification(ETextJustify::Type::Left)
+					.MinDesiredWidth(60)
+				]
 			]
-			+ SOverlay::Slot()
-			.HAlign(HAlign_Fill)
-			.VAlign(VAlign_Fill)
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			.Padding(12.0f, 0.0f, 12.0f, 12.0f)
 			[
-				_cellsGridPanel.ToSharedRef()
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.HAlign(HAlign_Right)
+				.VAlign(VAlign_Center)
+				.Padding(0.0f)
+				[
+					SNew(STextBlock)
+					.Text(FText::FromString(TEXT("Height")))
+					.Justification(ETextJustify::Type::Left)
+					.MinDesiredWidth(60)
+				]
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.HAlign(HAlign_Right)
+				.VAlign(VAlign_Center)
+				.Padding(0.0f)
+				[
+					SNew(SEditableTextBox)
+					.Text(FText::FromString(TEXT("0")))
+					.Justification(ETextJustify::Type::Left)
+					.MinDesiredWidth(60)
+				]
+			]
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			.Padding(12.0f, 0.0f, 12.0f, 12.0f)
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.HAlign(HAlign_Right)
+				.VAlign(VAlign_Center)
+				.Padding(0.0f)
+				[
+					SNew(STextBlock)
+					.Text(FText::FromString(TEXT("Number Of Mines")))
+					.Justification(ETextJustify::Type::Left)
+					.MinDesiredWidth(60)
+				]
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.HAlign(HAlign_Right)
+				.VAlign(VAlign_Center)
+				.Padding(0.0f)
+				[
+					SNew(SEditableTextBox)
+					.Text(FText::FromString(TEXT("0")))
+					.Justification(ETextJustify::Type::Left)
+					.MinDesiredWidth(60)
+				]
+			]
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			.Padding(12.0f, 0.0f, 12.0f, 12.0f)
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.HAlign(HAlign_Right)
+				.VAlign(VAlign_Center)
+				.Padding(0.0f)
+				[
+					SNew(STextBlock)
+					.Text(FText::FromString(TEXT("Current Action")))
+					.Justification(ETextJustify::Type::Left)
+					.MinDesiredWidth(60)
+				]
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.HAlign(HAlign_Right)
+				.VAlign(VAlign_Center)
+				.Padding(0.0f)
+				[
+					SNew(SBox)
+					.VAlign(VAlign_Center)
+					.HAlign(HAlign_Fill)
+					.HeightOverride(21)
+					[
+						SNew(SComboBox<TSharedPtr<FText>>)
+						.OptionsSource(&_actionComboOptions)
+						.IsEnabled(true)
+						.OnGenerateWidget_Lambda([](TSharedPtr<FText> Item)
+						{
+							return SNew(STextBlock).Text(*Item);
+						})
+						.Content()
+						[
+							SNew(STextBlock)
+							.Text(this, &SMinesweeperGameBoard::GetSelectedActionOption)
+						]
+						.OnSelectionChanged(this, &SMinesweeperGameBoard::OnSelectedActionChanged)
+					]
+				]
+			]
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			.Padding(12.0f, 0.0f, 12.0f, 12.0f)
+			[
+				SNew(SOverlay)
+				+ SOverlay::Slot()
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Fill)
+				[
+					SNew(SImage)
+					.ColorAndOpacity(FColor::Black)
+				]
+				+ SOverlay::Slot()
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Fill)
+				[
+					_cellsGridPanel.ToSharedRef()
+				]
 			]
 		];
 
@@ -38,13 +171,32 @@ bool SMinesweeperGameBoard::SupportsKeyboardFocus() const {
 void SMinesweeperGameBoard::PopulateGrid() {
 	const FIntPoint BoardMatrixSize = _gameSession->GetGameDataState()->Matrix->GetSize();
 
-	for (int i = 0; i < BoardMatrixSize.X; i++) {
-		for (int j = 0; j < BoardMatrixSize.Y; j++) {
-			_cellsGridPanel->AddSlot(i, j)
+	for (int ColumnIndex = 0; ColumnIndex < BoardMatrixSize.X; ColumnIndex++) {
+		for (int RowIndex = 0; RowIndex < BoardMatrixSize.Y; RowIndex++) {
+			const auto CellCoordinates = FMinesweeperCellCoordinate(ColumnIndex, RowIndex);
+			_cellsGridPanel->AddSlot(ColumnIndex, RowIndex)
 				[
-					SNew(STextBlock)
-					.Text(FText::FromString(FString::Printf(TEXT("%d x %d"), i, j)))
+					SNew(SButton)
+					.Text(FText::FromString(FString::Printf(TEXT("%d x %d"), ColumnIndex, RowIndex)))
+					.OnClicked_Lambda([this, CellCoordinates]() {
+						RunAction(CellCoordinates);
+						return FReply::Handled();
+					})
 				];
 		}
 	}
+}
+
+void SMinesweeperGameBoard::RunAction(const FMinesweeperCellCoordinate& InCoordinates) {
+	_actionFunctions[_selectedActionIndex](_gameSession, InCoordinates);
+}
+
+void SMinesweeperGameBoard::OnSelectedActionChanged(TSharedPtr<FText> InNewItem, ESelectInfo::Type InSelectType) {
+	_selectedActionIndex = _actionComboOptions.IndexOfByPredicate([InNewItem](TSharedPtr<FText> InElement) {
+		return InElement->ToString() == InNewItem->ToString();
+	});
+}
+
+FText SMinesweeperGameBoard::GetSelectedActionOption() const { 
+	return *_actionComboOptions[_selectedActionIndex].Get();
 }
