@@ -11,6 +11,8 @@ void FGameStateMachine::GoToState(const TSharedRef<FAbstractLogicState>& InNewSt
 
 	_logicState = InNewState;
 	InNewState->OwnerStateMachine = this->AsShared();
+	OnLogicStateChanged.Broadcast(InNewState);
+
 	InNewState->OnEnter();
 }
 
@@ -52,18 +54,18 @@ void FMinesweeperGameDataState::ClearAndPlaceRandomMines(int InNumberOfMines) {
 }
 
 void FPlayingLogicState::FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
-	check(_gameDataState.IsValid());
+	check(GameDataState.IsValid());
 
-	auto gameDataState = _gameDataState.Pin();
+	auto gameDataState = GameDataState.Pin();
 	check(gameDataState->Matrix->Has(InCoordinates));
 	FMinesweeperCell& cell = gameDataState->Matrix->Get(InCoordinates);
 	cell.bIsFlagged = !cell.bIsFlagged;
 }
 
 void FPlayingLogicState::SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
-	check(_gameDataState.IsValid());
+	check(GameDataState.IsValid());
 
-	auto gameDataState = _gameDataState.Pin();
+	auto gameDataState = GameDataState.Pin();
 	check(gameDataState->Matrix->Has(InCoordinates));
 	FMinesweeperCell& cell = gameDataState->Matrix->Get(InCoordinates);
 	switch (cell.CellState) {
@@ -71,13 +73,13 @@ void FPlayingLogicState::SweepOnCell(const FMinesweeperCellCoordinate& InCoordin
 		OwnerStateMachine.Pin()->GoToState<FGameOverLogicState>();
 		break;
 	case EMinesweeperCellState::Empty:
-		_gameDataState.Pin()->Matrix->Get(InCoordinates).bIsCovered = false;
+		GameDataState.Pin()->Matrix->Get(InCoordinates).bIsCovered = false;
 		_uncoverAdjacents(InCoordinates);
 	}
 }
 
 void FPlayingLogicState::_uncoverAdjacents(const FMinesweeperCellCoordinate& InCoordinates) {
-	auto matrix = _gameDataState.Pin()->Matrix.ToSharedRef();
+	auto matrix = GameDataState.Pin()->Matrix.ToSharedRef();
 
 	TArray<FIntPoint> adjacentCellsCoordinates = FMatrixNavigator<FMinesweeperCell>(matrix).GetAdjacentsTo(InCoordinates);
 	for (const auto& adjacentCellCoordinates : adjacentCellsCoordinates) {
@@ -92,6 +94,12 @@ void FPlayingLogicState::_uncoverAdjacents(const FMinesweeperCellCoordinate& InC
 void FMinesweeperGameSession::Startup() {
 	_bIsRunning = true;
 	_gameDataState = MakeShared<FMinesweeperGameDataState>();
+
+	// Add lambda to always inject the game data state to the new logic states when a transition happens
+	_gameLogicStateMachine->OnLogicStateChanged.AddLambda([this](TSharedRef<FAbstractLogicState> InNewState) {
+		StaticCastSharedRef<IMinesweeperGameLogicState>(InNewState)->GameDataState = _gameDataState;
+	});
+
 	_gameLogicStateMachine->GoToState<FIdleLogicState>();
 }
 

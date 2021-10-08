@@ -33,6 +33,8 @@ public:
 	TWeakPtr<class FGameStateMachine> OwnerStateMachine;
 };
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnLogicStateChanged, TSharedRef<FAbstractLogicState>);
+
 /**
  * \brief - Interface holding a generic game logic state machine
  */
@@ -51,6 +53,8 @@ public:
 	void GoToState() {
 		return GoToState(MakeShared<TConcreteLogicState>());
 	}
+
+	FOnLogicStateChanged OnLogicStateChanged;
 
 protected:
 	TSharedPtr<ILogicState> _logicState;
@@ -196,7 +200,7 @@ struct MINESWEEPERGAMELOGICS_API IMinesweeperGameLogicState : public FAbstractLo
 	virtual void FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) = 0;
 	virtual void SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) = 0;
 
-	TWeakPtr<FMinesweeperGameDataState> _gameDataState;
+	TWeakPtr<FMinesweeperGameDataState> GameDataState;
 };
 
 struct MINESWEEPERGAMELOGICS_API FIdleLogicState : public IMinesweeperGameLogicState {
