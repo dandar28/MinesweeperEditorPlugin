@@ -12,7 +12,8 @@ public class MinesweeperEditorPlugin : ModuleRules
 			new string[]
 			{
 				"Core",
-				"MinesweeperGame"
+				"MinesweeperGameLogics",
+				"MinesweeperGameUI"
 			}
 			);
 			

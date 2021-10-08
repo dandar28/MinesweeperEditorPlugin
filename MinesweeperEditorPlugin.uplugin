@@ -22,7 +22,12 @@
 			"LoadingPhase": "Default"
 		},
 		{
-			"Name": "MinesweeperGame",
+			"Name": "MinesweeperGameLogics",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit"
+		},
+		{
+			"Name": "MinesweeperGameUI",
 			"Type": "Editor",
 			"LoadingPhase": "PostEngineInit"
 		}
