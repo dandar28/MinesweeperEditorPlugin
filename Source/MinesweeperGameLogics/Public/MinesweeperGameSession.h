@@ -6,7 +6,7 @@
  * \brief - Interface holding a generic game data state
  */
 template <class TGameState>
-class MINESWEEPERGAME_API TGameStateHolder {
+class MINESWEEPERGAMELOGICS_API TGameStateHolder {
 public:
 	TSharedRef<TGameState> GetGameDataState() const {
 		return _gameDataState.ToSharedRef();
@@ -16,14 +16,14 @@ protected:
 	TSharedPtr<TGameState> _gameDataState;
 };
 
-class MINESWEEPERGAME_API ILogicState {
+class MINESWEEPERGAMELOGICS_API ILogicState {
 public:
 	virtual void OnEnter() = 0;
 	virtual void OnExit() = 0;
 };
 
 
-class MINESWEEPERGAME_API FAbstractLogicState : public ILogicState {
+class MINESWEEPERGAMELOGICS_API FAbstractLogicState : public ILogicState {
 public:
 	virtual ~FAbstractLogicState() = default;
 
@@ -36,7 +36,7 @@ public:
 /**
  * \brief - Interface holding a generic game logic state machine
  */
-class MINESWEEPERGAME_API FGameStateMachine : public TSharedFromThis<FGameStateMachine> {
+class MINESWEEPERGAMELOGICS_API FGameStateMachine : public TSharedFromThis<FGameStateMachine> {
 public:
 	TSharedRef<ILogicState> GetGameLogicState() const {
 		return _logicState.ToSharedRef();
@@ -68,14 +68,14 @@ protected:
 /**
  * \brief - Interface for hosting a generic game session
  */
-class MINESWEEPERGAME_API IGameSession {
+class MINESWEEPERGAMELOGICS_API IGameSession {
 public:
 	virtual void Startup() = 0;
 	virtual void Shutdown() = 0;
 	virtual bool IsRunning() const = 0;
 };
 
-enum MINESWEEPERGAME_API EMinesweeperCellState {
+enum MINESWEEPERGAMELOGICS_API EMinesweeperCellState {
 	Empty,
 	Bomb
 };
@@ -83,21 +83,21 @@ enum MINESWEEPERGAME_API EMinesweeperCellState {
 /**
  * \brief - Structure representing a minesweeper cell
  */
-struct MINESWEEPERGAME_API FMinesweeperCell {
+struct MINESWEEPERGAMELOGICS_API FMinesweeperCell {
 	EMinesweeperCellState CellState;
 	bool bIsFlagged = false;
 	bool bIsCovered = true;
 };
 
 template <typename CellType>
-struct MINESWEEPERGAME_API ICellMatrix {
+struct MINESWEEPERGAMELOGICS_API ICellMatrix {
 	virtual const CellType& Get(const FIntPoint& InCoordinates) const = 0;
 	virtual CellType& Get(const FIntPoint& InCoordinates) = 0;
 	virtual bool Has(const FIntPoint& InCoordinates) const = 0;
 };
 
 template <typename CellType>
-struct MINESWEEPERGAME_API FMatrixNavigator {
+struct MINESWEEPERGAMELOGICS_API FMatrixNavigator {
 	FMatrixNavigator(const TSharedRef<ICellMatrix<CellType>>& matrix) {
 		_matrix = matrix;
 	}
@@ -125,7 +125,7 @@ private:
 };
 
 template <typename CellType>
-struct MINESWEEPERGAME_API TCellMatrix : public ICellMatrix<CellType> {
+struct MINESWEEPERGAMELOGICS_API TCellMatrix : public ICellMatrix<CellType> {
 	virtual ~TCellMatrix() = default;
 
 	TCellMatrix(int InWidth, int InHeight) {
@@ -155,7 +155,7 @@ protected:
 };
 
 template <int NumRows, int NumCols, typename CellType>
-struct MINESWEEPERGAME_API TFixedSizeCellMatrix : public ICellMatrix<CellType> {
+struct MINESWEEPERGAMELOGICS_API TFixedSizeCellMatrix : public ICellMatrix<CellType> {
 	const CellType& Get(const FIntPoint& InCoordinates) const {
 		return _matrixData[InCoordinates.X][InCoordinates.Y];
 	}
@@ -177,7 +177,7 @@ using FMinesweeperMatrix = TSharedPtr<ICellMatrix<FMinesweeperCell>>;
 /**
  * \brief - Class holding the game data state of a minesweeper game session
  */
-struct MINESWEEPERGAME_API FMinesweeperGameDataState {
+struct MINESWEEPERGAMELOGICS_API FMinesweeperGameDataState {
 	FMinesweeperMatrix Matrix;
 
 	void RebuildMatrix(int InWidth, int InHeight) {
@@ -190,7 +190,7 @@ using FMinesweeperCellCoordinate = FIntPoint;
 /**
  * \brief - Interface handling the game logic state of a minesweeper game session
  */
-struct MINESWEEPERGAME_API IMinesweeperGameLogicState : public FAbstractLogicState {
+struct MINESWEEPERGAMELOGICS_API IMinesweeperGameLogicState : public FAbstractLogicState {
 	virtual ~IMinesweeperGameLogicState() = default;
 
 	virtual void FlagOnCell(const FMinesweeperCellCoordinate& coordinate) = 0;
@@ -259,7 +259,7 @@ private:
 /**
  * \brief - Class hosting a game session of minesweeper
  */
-class MINESWEEPERGAME_API FMinesweeperGameSession : public IGameSession, public TGameStateHolder<FMinesweeperGameDataState> {
+class MINESWEEPERGAMELOGICS_API FMinesweeperGameSession : public IGameSession, public TGameStateHolder<FMinesweeperGameDataState> {
 	virtual ~FMinesweeperGameSession() = default;
 
 	void Startup() override {
