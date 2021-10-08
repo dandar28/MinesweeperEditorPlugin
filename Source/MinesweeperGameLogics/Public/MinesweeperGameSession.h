@@ -85,6 +85,7 @@ struct MINESWEEPERGAMELOGICS_API ICellMatrix {
 	virtual const CellType& Get(const FIntPoint& InCoordinates) const = 0;
 	virtual CellType& Get(const FIntPoint& InCoordinates) = 0;
 	virtual bool Has(const FIntPoint& InCoordinates) const = 0;
+	virtual FIntPoint GetSize() const = 0;
 };
 
 template <typename CellType>
@@ -139,6 +140,8 @@ struct MINESWEEPERGAMELOGICS_API TCellMatrix : public ICellMatrix<CellType> {
 	bool Has(const FIntPoint& InCoordinates) const {
 		return InCoordinates.X < _matrixSize.X && InCoordinates.Y < _matrixSize.Y;
 	}
+
+	virtual FIntPoint GetSize() const { return _matrixSize; }
 
 protected:
 	TArray<TArray<CellType>> _matrixData;
