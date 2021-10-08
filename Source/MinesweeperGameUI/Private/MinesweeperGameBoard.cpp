@@ -3,6 +3,9 @@
 void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	bCanSupportFocus = true;
 
+	_gameSession = InArgs._GameSession;
+	check(_gameSession.IsValid());
+
 	_cellsGridPanel =
 		SNew(SUniformGridPanel)
 		.SlotPadding(FMargin(5.0f));
@@ -24,6 +27,8 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 				_cellsGridPanel.ToSharedRef()
 			]
 		];
+
+	PopulateGrid();
 }
 
 bool SMinesweeperGameBoard::SupportsKeyboardFocus() const {
@@ -31,8 +36,10 @@ bool SMinesweeperGameBoard::SupportsKeyboardFocus() const {
 }
 
 void SMinesweeperGameBoard::PopulateGrid() {
-	for (int i = 0; i < 9; i++) {
-		for (int j = 0; j < 9; j++) {
+	const FIntPoint BoardMatrixSize = _gameSession->GetGameDataState()->Matrix->GetSize();
+
+	for (int i = 0; i < BoardMatrixSize.X; i++) {
+		for (int j = 0; j < BoardMatrixSize.Y; j++) {
 			_cellsGridPanel->AddSlot(i, j)
 				[
 					SNew(STextBlock)
