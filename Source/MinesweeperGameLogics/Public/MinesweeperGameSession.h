@@ -38,22 +38,13 @@ public:
  */
 class MINESWEEPERGAMELOGICS_API FGameStateMachine : public TSharedFromThis<FGameStateMachine> {
 public:
-	TSharedRef<ILogicState> GetGameLogicState() const {
-		return _logicState.ToSharedRef();
-	}
+	TSharedRef<ILogicState> GetGameLogicState() const;
+
+	void GoToState(const TSharedRef<FAbstractLogicState>& InNewState);
 
 	template <class TConcreteLogicState>
 	TSharedRef<TConcreteLogicState> GetGameLogicStateAs() const {
 		return StaticCastSharedRef<TConcreteLogicState>(_logicState.ToSharedRef());
-	}
-
-	void GoToState(const TSharedRef<FAbstractLogicState>& InNewState) {
-		if (_logicState.IsValid()) {
-			_logicState->OnExit();
-		}
-
-		InNewState->OwnerStateMachine = this->AsShared();
-		InNewState->OnEnter();
 	}
 
 	template <class TConcreteLogicState>
@@ -180,9 +171,7 @@ using FMinesweeperMatrix = TSharedPtr<ICellMatrix<FMinesweeperCell>>;
 struct MINESWEEPERGAMELOGICS_API FMinesweeperGameDataState {
 	FMinesweeperMatrix Matrix;
 
-	void RebuildMatrix(int InWidth, int InHeight) {
-		Matrix = StaticCastSharedRef<ICellMatrix<FMinesweeperCell>>(MakeShared<TCellMatrix<FMinesweeperCell>>(InWidth, InHeight));
-	}
+	void RebuildMatrix(int InWidth, int InHeight);
 };
 
 using FMinesweeperCellCoordinate = FIntPoint;
@@ -199,92 +188,45 @@ struct MINESWEEPERGAMELOGICS_API IMinesweeperGameLogicState : public FAbstractLo
 	TWeakPtr<FMinesweeperGameDataState> _gameDataState;
 };
 
-struct FIdleLogicState : public IMinesweeperGameLogicState {
+struct MINESWEEPERGAMELOGICS_API FIdleLogicState : public IMinesweeperGameLogicState {
 	virtual ~FIdleLogicState() = default;
 
 	void FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) override {}
 	void SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) override {}
 };
 
-struct FGameOverLogicState : public IMinesweeperGameLogicState {
+struct MINESWEEPERGAMELOGICS_API FGameOverLogicState : public IMinesweeperGameLogicState {
 	virtual ~FGameOverLogicState() = default;
 
 	void FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) override {}
 	void SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) override {}
 };
 
-struct FPlayingLogicState : public IMinesweeperGameLogicState {
+struct MINESWEEPERGAMELOGICS_API FPlayingLogicState : public IMinesweeperGameLogicState {
 	virtual ~FPlayingLogicState() = default;
 
-	void FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) override {
-		check(_gameDataState.IsValid());
-
-		auto gameDataState = _gameDataState.Pin();
-		check(gameDataState->Matrix->Has(InCoordinates));
-		FMinesweeperCell& cell = gameDataState->Matrix->Get(InCoordinates);
-		cell.bIsFlagged = !cell.bIsFlagged;
-	}
-
-	void SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) override {
-		check(_gameDataState.IsValid());
-
-		auto gameDataState = _gameDataState.Pin();
-		check(gameDataState->Matrix->Has(InCoordinates));
-		FMinesweeperCell& cell = gameDataState->Matrix->Get(InCoordinates);
-		switch (cell.CellState) {
-		case EMinesweeperCellState::Bomb:
-			OwnerStateMachine.Pin()->GoToState<FGameOverLogicState>();
-			break;
-		case EMinesweeperCellState::Empty:
-			_gameDataState.Pin()->Matrix->Get(InCoordinates).bIsCovered = false;
-			_uncoverAdjacents(InCoordinates);
-		}
-	}
+	void FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) override;
+	void SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) override;
 
 private:
-	void _uncoverAdjacents(const FMinesweeperCellCoordinate& InCoordinates) {
-		auto matrix = _gameDataState.Pin()->Matrix.ToSharedRef();
-
-		TArray<FIntPoint> adjacentCellsCoordinates = FMatrixNavigator<FMinesweeperCell>(matrix).GetAdjacentsTo(InCoordinates);
-		for (const auto& adjacentCellCoordinates : adjacentCellsCoordinates) {
-			auto& adjacentCell = matrix->Get(adjacentCellCoordinates);
-			if (adjacentCell.bIsCovered && adjacentCell.CellState == EMinesweeperCellState::Empty) {
-				adjacentCell.bIsCovered = false;
-				_uncoverAdjacents(adjacentCellCoordinates);
-			}
-		}
-	}
+	void _uncoverAdjacents(const FMinesweeperCellCoordinate& InCoordinates);
 };
 
 /**
  * \brief - Class hosting a game session of minesweeper
  */
-class MINESWEEPERGAMELOGICS_API FMinesweeperGameSession : public IGameSession, public TGameStateHolder<FMinesweeperGameDataState> {
+class MINESWEEPERGAMELOGICS_API FMinesweeperGameSession
+	: public IGameSession
+	, public TGameStateHolder<FMinesweeperGameDataState> {
+public:
 	virtual ~FMinesweeperGameSession() = default;
 
-	void Startup() override {
-		_bIsRunning = true;
-		_gameDataState = MakeShared<FMinesweeperGameDataState>();
-		_gameLogicStateMachine.GoToState<FPlayingLogicState>();
-	}
-	
-	void Shutdown() override {
-		_gameLogicStateMachine.GoToState<FIdleLogicState>();
-		_bIsRunning = false;
-		_gameDataState.Reset();
-	}
+	void Startup() override;	
+	void Shutdown() override;
+	bool IsRunning() const override;
 
-	bool IsRunning() const override { return _bIsRunning; }
-
-	void FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
-		check(IsRunning());
-		_gameLogicStateMachine.GetGameLogicStateAs<IMinesweeperGameLogicState>()->FlagOnCell(InCoordinates);
-	}
-
-	void SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
-		check(IsRunning());
-		_gameLogicStateMachine.GetGameLogicStateAs<IMinesweeperGameLogicState>()->SweepOnCell(InCoordinates);
-	}
+	void FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates);
+	void SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates);
 
 private:
 	bool _bIsRunning = false;
