@@ -48,6 +48,12 @@ void FMinesweeperEditorPluginModule::ShutdownModule()
 
 void FMinesweeperEditorPluginModule::PluginButtonClicked()
 {
+	const FIntPoint MatrixSize = FIntPoint(9, 9);
+
+	const auto GameSession = MakeShared<FMinesweeperGameSession>();
+	GameSession->Startup();
+	GameSession->GetGameDataState()->RebuildMatrix(MatrixSize.X, MatrixSize.Y);
+
 	TSharedRef<SWindow> MinesweeperGameWindow = SNew(SWindow)
 		.Title(FText::FromString(TEXT("Minesweeper Game Window")))
 		.ClientSize(FVector2D(800, 800))
@@ -60,8 +66,14 @@ void FMinesweeperEditorPluginModule::PluginButtonClicked()
 			.VAlign(VAlign_Fill)
 			[
 				SNew(SMinesweeperGameBoard)
+				.GameSession(GameSession)
 			]
 		];
+
+	MinesweeperGameWindow->GetOnWindowClosedEvent().AddLambda([GameSession]() {
+		GameSession->Shutdown();
+	});
+
 	FSlateApplication::Get().AddWindow(MinesweeperGameWindow, true);
 }
 
