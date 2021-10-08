@@ -75,7 +75,7 @@ enum MINESWEEPERGAMELOGICS_API EMinesweeperCellState {
  * \brief - Structure representing a minesweeper cell
  */
 struct MINESWEEPERGAMELOGICS_API FMinesweeperCell {
-	EMinesweeperCellState CellState;
+	EMinesweeperCellState CellState = EMinesweeperCellState::Empty;
 	bool bIsFlagged = false;
 	bool bIsCovered = true;
 };
