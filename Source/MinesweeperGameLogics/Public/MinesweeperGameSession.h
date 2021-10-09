@@ -74,6 +74,14 @@ enum MINESWEEPERGAMELOGICS_API EMinesweeperCellState {
 	Bomb
 };
 
+enum MINESWEEPERGAMELOGICS_API EMinesweeperCellFlags {
+	None = 0,
+	QuestionMarked = 1<<1,
+	Flagged = 1<<2,
+	Revealed = 1<<3
+};
+ENUM_CLASS_FLAGS(EMinesweeperCellFlags)
+
 using FMinesweeperCellCoordinate = FIntPoint;
 
 /**
@@ -81,8 +89,15 @@ using FMinesweeperCellCoordinate = FIntPoint;
  */
 struct MINESWEEPERGAMELOGICS_API FMinesweeperCell {
 	EMinesweeperCellState CellState = EMinesweeperCellState::Empty;
-	bool bIsFlagged = false;
-	bool bIsCovered = true;
+	EMinesweeperCellFlags Flags = EMinesweeperCellFlags::None;
+
+	bool IsQuestionMarked() const;
+	bool IsFlagged() const;
+	bool IsRevealed() const;
+
+	void SetQuestionMarked(bool bQuestionMarked);
+	void SetFlagged(bool bFlagged);
+	void SetRevealed(bool bFlagged);
 };
 
 template <typename CellType>
@@ -215,7 +230,7 @@ struct MINESWEEPERGAMELOGICS_API FMinesweeperGameDataState {
 
 	void ForeachCell(const TFunction<void(FMinesweeperCell&)>& InPredicate);
 
-	void UncoverAllCells();
+	void RevealAllCells();
 	void ClearMatrixCells();
 	void ClearAndPlaceRandomMines(int InNumberOfMines);
 };
@@ -256,7 +271,7 @@ struct MINESWEEPERGAMELOGICS_API FPlayingLogicState : public IMinesweeperGameLog
 	void SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) override;
 
 private:
-	void _uncoverAdjacents(const FMinesweeperCellCoordinate& InCoordinates);
+	void _revealAdjacents(const FMinesweeperCellCoordinate& InCoordinates);
 };
 
 struct MINESWEEPERGAMELOGICS_API FMinesweeperGameSettings {

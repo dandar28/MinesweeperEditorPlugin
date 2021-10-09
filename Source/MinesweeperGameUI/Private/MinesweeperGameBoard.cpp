@@ -189,7 +189,7 @@ void SMinesweeperGameBoard::PopulateGrid() {
 			const FMinesweeperCell CurrentCell = Matrix->Get(CurrentCellCoordinates);
 			int CountOfAdjacentBombs = 0;
 
-			if (!CurrentCell.bIsCovered) {
+			if (CurrentCell.IsRevealed()) {
 				switch (CurrentCell.CellState) {
 				case EMinesweeperCellState::Empty:
 					CurrentCellText = "";
@@ -219,7 +219,7 @@ void SMinesweeperGameBoard::PopulateGrid() {
 					CurrentCellText = "BOMB";
 					break;
 				}
-			} else if (CurrentCell.bIsFlagged) {
+			} else if (CurrentCell.IsFlagged()) {
 				CurrentCellColor = FLinearColor::Yellow;
 				CurrentCellText = "FLAG";
 			}

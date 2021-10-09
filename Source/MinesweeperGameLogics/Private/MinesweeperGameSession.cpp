@@ -34,9 +34,9 @@ void FMinesweeperGameDataState::ForeachCell(const TFunction<void(FMinesweeperCel
 	}
 }
 
-void FMinesweeperGameDataState::UncoverAllCells() {
+void FMinesweeperGameDataState::RevealAllCells() {
 	ForeachCell([](FMinesweeperCell& InRefCurrentCell) {
-		InRefCurrentCell.bIsCovered = false;
+		InRefCurrentCell.SetRevealed(true);
 	});
 }
 
@@ -73,7 +73,7 @@ void FGameOverLogicState::OnEnter() {
 	check(GameDataState.IsValid());
 
 	GameSession.Pin()->OnGameOver.Broadcast();
-	GameDataState.Pin()->UncoverAllCells();
+	GameDataState.Pin()->RevealAllCells();
 }
 
 void FPlayingLogicState::FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
@@ -82,7 +82,7 @@ void FPlayingLogicState::FlagOnCell(const FMinesweeperCellCoordinate& InCoordina
 	auto GameDataStatePinned = GameDataState.Pin();
 	check(GameDataStatePinned->Matrix->Has(InCoordinates));
 	FMinesweeperCell& Cell = GameDataStatePinned->Matrix->Get(InCoordinates);
-	Cell.bIsFlagged = !Cell.bIsFlagged;
+	Cell.SetFlagged(!Cell.IsFlagged());
 }
 
 void FPlayingLogicState::SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
@@ -90,21 +90,25 @@ void FPlayingLogicState::SweepOnCell(const FMinesweeperCellCoordinate& InCoordin
 
 	auto GameDataStatePinned = GameDataState.Pin();
 	check(GameDataStatePinned->Matrix->Has(InCoordinates));
+
 	FMinesweeperCell& Cell = GameDataStatePinned->Matrix->Get(InCoordinates);
+
+	if (Cell.IsRevealed()) {
+		return;
+	}
+
+	Cell.SetRevealed(true);
+
 	switch (Cell.CellState) {
 	case EMinesweeperCellState::Bomb:
 		OwnerStateMachine.Pin()->GoToState<FGameOverLogicState>();
 		break;
 	case EMinesweeperCellState::Empty:
-		bool& bIsCellCovered = GameDataStatePinned->Matrix->Get(InCoordinates).bIsCovered;
-		if (bIsCellCovered) {
-			bIsCellCovered = false;
-			_uncoverAdjacents(InCoordinates);
-		}
+		_revealAdjacents(InCoordinates);
 	}
 }
 
-void FPlayingLogicState::_uncoverAdjacents(const FMinesweeperCellCoordinate& InCoordinates) {
+void FPlayingLogicState::_revealAdjacents(const FMinesweeperCellCoordinate& InCoordinates) {
 	auto Matrix = GameDataState.Pin()->Matrix.ToSharedRef();
 
 	const int NumOfAdjacentBombs = FMinesweeperMatrixNavigator(Matrix).CountAdjacentBombs(InCoordinates);
@@ -118,11 +122,11 @@ void FPlayingLogicState::_uncoverAdjacents(const FMinesweeperCellCoordinate& InC
 			continue;
 		}
 		auto& AdjacentCell = Matrix->Get(AdjacentCellCoordinates);
-		if (AdjacentCell.bIsCovered && AdjacentCell.CellState == EMinesweeperCellState::Empty) {
-			AdjacentCell.bIsCovered = false;
+		if (!AdjacentCell.IsRevealed() && AdjacentCell.CellState == EMinesweeperCellState::Empty) {
+			AdjacentCell.SetRevealed(true);
 
 			if (FMinesweeperMatrixNavigator(Matrix).CountAdjacentBombs(AdjacentCellCoordinates) == 0) {
-				_uncoverAdjacents(AdjacentCellCoordinates);
+				_revealAdjacents(AdjacentCellCoordinates);
 			}
 		}
 	}
@@ -175,3 +179,11 @@ void FMinesweeperGameSession::SweepOnCell(const FMinesweeperCellCoordinate& InCo
 	check(IsRunning());
 	_gameLogicStateMachine->GetGameLogicStateAs<IMinesweeperGameLogicState>()->SweepOnCell(InCoordinates);
 }
+
+bool FMinesweeperCell::IsQuestionMarked() const { return EnumHasAnyFlags(Flags, EMinesweeperCellFlags::QuestionMarked); }
+bool FMinesweeperCell::IsFlagged() const { return EnumHasAnyFlags(Flags, EMinesweeperCellFlags::Flagged); }
+bool FMinesweeperCell::IsRevealed() const { return EnumHasAnyFlags(Flags, EMinesweeperCellFlags::Revealed); }
+
+void FMinesweeperCell::SetQuestionMarked(bool bQuestionMarked) { Flags |= EMinesweeperCellFlags::QuestionMarked; }
+void FMinesweeperCell::SetFlagged(bool bFlagged) { Flags |= EMinesweeperCellFlags::Flagged; }
+void FMinesweeperCell::SetRevealed(bool bFlagged) { Flags |= EMinesweeperCellFlags::Revealed; }
