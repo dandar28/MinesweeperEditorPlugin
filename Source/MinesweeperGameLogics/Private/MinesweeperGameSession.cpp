@@ -96,13 +96,21 @@ void FPlayingLogicState::SweepOnCell(const FMinesweeperCellCoordinate& InCoordin
 		OwnerStateMachine.Pin()->GoToState<FGameOverLogicState>();
 		break;
 	case EMinesweeperCellState::Empty:
-		GameDataState.Pin()->Matrix->Get(InCoordinates).bIsCovered = false;
-		_uncoverAdjacents(InCoordinates);
+		bool& bIsCellCovered = GameDataStatePinned->Matrix->Get(InCoordinates).bIsCovered;
+		if (bIsCellCovered) {
+			bIsCellCovered = false;
+			_uncoverAdjacents(InCoordinates);
+		}
 	}
 }
 
 void FPlayingLogicState::_uncoverAdjacents(const FMinesweeperCellCoordinate& InCoordinates) {
 	auto Matrix = GameDataState.Pin()->Matrix.ToSharedRef();
+
+	const int NumOfAdjacentBombs = FMinesweeperMatrixNavigator(Matrix).CountAdjacentBombs(InCoordinates);
+	if (NumOfAdjacentBombs > 0 ) {
+		return;
+	}
 
 	TArray<FIntPoint> AdjacentCellsCoordinates = FMatrixNavigator<FMinesweeperCell>(Matrix).GetAdjacentsTo(InCoordinates);
 	for (const auto& AdjacentCellCoordinates : AdjacentCellsCoordinates) {
