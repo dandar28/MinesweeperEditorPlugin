@@ -1,4 +1,4 @@
-#include "MinesweeperGameBoard.h"
+#include "SMinesweeperGameBoard.h"
 
 #include "Widgets/Layout/SScaleBox.h"
 

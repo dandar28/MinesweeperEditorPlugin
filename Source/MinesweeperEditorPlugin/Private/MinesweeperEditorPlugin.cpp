@@ -9,7 +9,7 @@
 #include "Minesweeper/FMinesweeperGameSession.h"
 #include "Minesweeper/FMinesweeperGameSettings.h"
 
-#include "MinesweeperGameBoard.h"
+#include "SMinesweeperGameBoard.h"
 
 static const FName MinesweeperEditorPluginTabName("MinesweeperEditorPlugin");
 
