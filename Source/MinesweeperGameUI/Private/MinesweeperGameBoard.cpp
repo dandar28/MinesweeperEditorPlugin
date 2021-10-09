@@ -6,6 +6,12 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	_gameSession = InArgs._GameSession;
 	check(_gameSession.IsValid());
 
+	_gameSession->OnGameOver.AddLambda([this]() {
+		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString("You Lost!"));
+
+		PopulateGrid();
+	});
+
 	_cellsGridPanel =
 		SNew(SUniformGridPanel)
 		.SlotPadding(FMargin(5.0f));
