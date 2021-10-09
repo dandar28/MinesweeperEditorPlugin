@@ -266,7 +266,8 @@ struct MINESWEEPERGAMELOGICS_API FMinesweeperGameSettings {
  */
 class MINESWEEPERGAMELOGICS_API FMinesweeperGameSession
 	: public IGameSession
-	, public TGameStateHolder<FMinesweeperGameDataState> {
+	, public TGameStateHolder<FMinesweeperGameDataState>
+	, public TSharedFromThis<FMinesweeperGameSession> {
 public:
 	virtual ~FMinesweeperGameSession() = default;
 
