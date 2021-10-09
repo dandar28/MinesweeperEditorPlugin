@@ -230,6 +230,7 @@ struct MINESWEEPERGAMELOGICS_API IMinesweeperGameLogicState : public FAbstractLo
 	virtual void SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) = 0;
 
 	TWeakPtr<FMinesweeperGameDataState> GameDataState;
+	TWeakPtr<class FMinesweeperGameSession> GameSession;
 };
 
 struct MINESWEEPERGAMELOGICS_API FIdleLogicState : public IMinesweeperGameLogicState {
