@@ -1,5 +1,3 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 using UnrealBuildTool;
 
 public class MinesweeperEditorPlugin : ModuleRules
@@ -15,7 +13,7 @@ public class MinesweeperEditorPlugin : ModuleRules
 				"MinesweeperGameLogics",
 				"MinesweeperGameUI"
 			}
-			);
+		);
 			
 		
 		PrivateDependencyModuleNames.AddRange(
@@ -31,6 +29,6 @@ public class MinesweeperEditorPlugin : ModuleRules
 				"SlateCore",
 				"EditorStyle"
 			}
-			);
+		);
 	}
 }
