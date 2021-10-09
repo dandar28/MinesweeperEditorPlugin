@@ -89,7 +89,10 @@ void FPlayingLogicState::_uncoverAdjacents(const FMinesweeperCellCoordinate& InC
 		auto& AdjacentCell = Matrix->Get(AdjacentCellCoordinates);
 		if (AdjacentCell.bIsCovered && AdjacentCell.CellState == EMinesweeperCellState::Empty) {
 			AdjacentCell.bIsCovered = false;
-			_uncoverAdjacents(AdjacentCellCoordinates);
+
+			if (FMinesweeperMatrixNavigator(Matrix).CountAdjacentBombs(AdjacentCellCoordinates) == 0) {
+				_uncoverAdjacents(AdjacentCellCoordinates);
+			}
 		}
 	}
 }
