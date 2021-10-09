@@ -16,7 +16,7 @@
 DECLARE_MULTICAST_DELEGATE(FOnGameOver);
 
 /**
- * \brief - Class hosting a game session of minesweeper
+ * \brief - Class hosting a game session of minesweeper.
  */
 class MINESWEEPERGAMELOGICS_API FMinesweeperGameSession
 	: public IGameSession

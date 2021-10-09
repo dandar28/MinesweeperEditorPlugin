@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 
 /**
- * \brief - Interface holding a generic game data state
+ * \brief - Templated class that contains a game data state within it.
  */
 template <class TGameState>
 class TGameStateHolder {

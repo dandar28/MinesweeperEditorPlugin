@@ -2,7 +2,12 @@
 
 #include "Minesweeper/IMinesweeperGameLogicState.h"
 
-struct MINESWEEPERGAMELOGICS_API FPlayingLogicState : public IMinesweeperGameLogicState {
+/**
+ * \brief - Logic State that handles the actual playing of minesweeper.
+ */
+class MINESWEEPERGAMELOGICS_API FPlayingLogicState
+	: public IMinesweeperGameLogicState {
+public:
 	virtual ~FPlayingLogicState() = default;
 
 	void FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) override;

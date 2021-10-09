@@ -4,8 +4,13 @@
 
 #include "ICellMatrix.h"
 
+/**
+ * \brief - Templated class which can hold a concrete matrix of cells of any type.
+ */
 template <typename CellType>
-struct MINESWEEPERGAMELOGICS_API TCellMatrix : public ICellMatrix<CellType> {
+class MINESWEEPERGAMELOGICS_API TCellMatrix
+	: public ICellMatrix<CellType> {
+public:
 	virtual ~TCellMatrix() = default;
 
 	TCellMatrix(int InWidth, int InHeight) {

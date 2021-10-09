@@ -4,8 +4,12 @@
 
 #include "ICellMatrix.h"
 
+/**
+ * \brief - Templated decorator class which, given a cell matrix of any cell type, adds certain easing methods.
+ */
 template <typename CellType>
-struct MINESWEEPERGAMELOGICS_API TMatrixNavigator {
+class MINESWEEPERGAMELOGICS_API TMatrixNavigator {
+public:
 	TMatrixNavigator(const TSharedRef<ICellMatrix<CellType>>& matrix) {
 		_matrix = matrix;
 	}

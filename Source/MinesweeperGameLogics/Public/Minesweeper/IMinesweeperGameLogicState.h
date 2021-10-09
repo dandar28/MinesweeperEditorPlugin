@@ -7,9 +7,11 @@
 #include "FMinesweeperCellCoordinate.h"
 
 /**
- * \brief - Interface handling the game logic state of a minesweeper game session
+ * \brief - Interface representing a game logic state of a minesweeper game session.
  */
-struct MINESWEEPERGAMELOGICS_API IMinesweeperGameLogicState : public FAbstractLogicState {
+class MINESWEEPERGAMELOGICS_API IMinesweeperGameLogicState
+	: public FAbstractLogicState {
+public:
 	virtual ~IMinesweeperGameLogicState() = default;
 
 	virtual void FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) = 0;

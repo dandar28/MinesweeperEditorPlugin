@@ -4,8 +4,13 @@
 
 #include "ICellMatrix.h"
 
+/**
+ * \brief - Templated class for fixed size cell matrices.
+ */
 template <int NumRows, int NumCols, typename CellType>
-struct MINESWEEPERGAMELOGICS_API TFixedSizeCellMatrix : public ICellMatrix<CellType> {
+class MINESWEEPERGAMELOGICS_API TFixedSizeCellMatrix
+	: public ICellMatrix<CellType> {
+public:
 	const CellType& Get(const FIntPoint& InCoordinates) const {
 		return _matrixData[InCoordinates.X][InCoordinates.Y];
 	}

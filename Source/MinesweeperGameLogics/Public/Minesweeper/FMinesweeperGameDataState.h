@@ -11,7 +11,8 @@ using FMinesweeperMatrix = TSharedPtr<ICellMatrix<FMinesweeperCell>>;
 /**
  * \brief - Class holding the game data state of a minesweeper game session
  */
-struct MINESWEEPERGAMELOGICS_API FMinesweeperGameDataState {
+class MINESWEEPERGAMELOGICS_API FMinesweeperGameDataState {
+public:
 	FMinesweeperMatrix Matrix;
 
 	void RebuildMatrix(int InWidth, int InHeight);

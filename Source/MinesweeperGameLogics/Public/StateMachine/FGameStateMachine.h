@@ -7,9 +7,10 @@
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnLogicStateChanged, TSharedRef<FAbstractLogicState>);
 
 /**
- * \brief - Interface holding a generic game logic state machine
+ * \brief - Concrete class for handling simple finite state machine transitions.
  */
-class MINESWEEPERGAMELOGICS_API FGameStateMachine : public TSharedFromThis<FGameStateMachine> {
+class MINESWEEPERGAMELOGICS_API FGameStateMachine
+	: public TSharedFromThis<FGameStateMachine> {
 public:
 	TSharedRef<ILogicState> GetGameLogicState() const;
 

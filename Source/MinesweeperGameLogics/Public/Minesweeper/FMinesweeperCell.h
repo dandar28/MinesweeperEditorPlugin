@@ -4,7 +4,7 @@
 #include "EMinesweeperCellFlags.h"
 
 /**
- * \brief - Structure representing a minesweeper cell
+ * \brief - Structure representing a minesweeper cell.
  */
 struct MINESWEEPERGAMELOGICS_API FMinesweeperCell {
 	EMinesweeperCellState CellState = EMinesweeperCellState::Empty;

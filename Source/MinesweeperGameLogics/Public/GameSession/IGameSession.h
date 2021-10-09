@@ -1,7 +1,7 @@
 #pragma once
 
 /**
- * \brief - Interface for hosting a generic game session
+ * \brief - Interface for hosting a generic game session.
  */
 class MINESWEEPERGAMELOGICS_API IGameSession {
 public:

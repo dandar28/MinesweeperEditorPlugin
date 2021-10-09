@@ -2,6 +2,9 @@
 
 #include "CoreMinimal.h"
 
+/**
+ * \brief - Enum representing the assignable flags related to a minesweeper cell.
+ */
 enum MINESWEEPERGAMELOGICS_API EMinesweeperCellFlags {
 	None = 0,
 	QuestionMarked = 1<<1,

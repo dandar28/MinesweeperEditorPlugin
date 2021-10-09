@@ -9,6 +9,9 @@
 
 #include "CellMatrix/TMatrixNavigator.h"
 
+/**
+ * \brief - Structure for decorating a cell matrix with minesweeper cells to handle certain specific logics.
+ */
 struct MINESWEEPERGAMELOGICS_API FMinesweeperMatrixNavigator {
 	FMinesweeperMatrixNavigator(const TSharedRef<ICellMatrix<FMinesweeperCell>>& matrix);
 

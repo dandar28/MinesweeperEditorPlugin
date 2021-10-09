@@ -4,7 +4,11 @@
 
 #include "ILogicState.h"
 
-class MINESWEEPERGAMELOGICS_API FAbstractLogicState : public ILogicState {
+/**
+ * \brief - Abstract logic state that also has a weak reference to its owner state machine.
+ */
+class MINESWEEPERGAMELOGICS_API FAbstractLogicState
+	: public ILogicState {
 public:
 	virtual ~FAbstractLogicState() = default;
 

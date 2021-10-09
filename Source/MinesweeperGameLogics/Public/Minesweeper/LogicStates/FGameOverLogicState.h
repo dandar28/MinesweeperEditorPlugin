@@ -2,7 +2,12 @@
 
 #include "Minesweeper/IMinesweeperGameLogicState.h"
 
-struct MINESWEEPERGAMELOGICS_API FGameOverLogicState : public IMinesweeperGameLogicState {
+/**
+ * \brief - Logic State used for ending the game in case of a game over.
+ */
+class MINESWEEPERGAMELOGICS_API FGameOverLogicState
+	: public IMinesweeperGameLogicState {
+public:
 	virtual ~FGameOverLogicState() = default;
 
 	void FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) override {}
