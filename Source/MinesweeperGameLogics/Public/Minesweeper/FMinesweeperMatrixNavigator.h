@@ -10,27 +10,11 @@
 #include "CellMatrix/TMatrixNavigator.h"
 
 struct MINESWEEPERGAMELOGICS_API FMinesweeperMatrixNavigator {
-	FMinesweeperMatrixNavigator(const TSharedRef<ICellMatrix<FMinesweeperCell>>& matrix) {
-		_matrix = matrix;
-	}
+	FMinesweeperMatrixNavigator(const TSharedRef<ICellMatrix<FMinesweeperCell>>& matrix);
 
-	TArray<FIntPoint> GetAdjacentsTo(const FMinesweeperCellCoordinate& InCoordinates, int InSquareUnitDistance = 1) {
-		return TMatrixNavigator<FMinesweeperCell>(_matrix.Pin().ToSharedRef()).GetAdjacentsTo(InCoordinates, InSquareUnitDistance);
-	}
+	TArray<FIntPoint> GetAdjacentsTo(const FMinesweeperCellCoordinate& InCoordinates, int InSquareUnitDistance = 1);
 
-	int CountAdjacentBombs(const FMinesweeperCellCoordinate& InCoordinates, int InSquareUnitDistance = 1) {
-		const auto Matrix = _matrix.Pin();
-		const auto AdjacentCellsCoordinates = GetAdjacentsTo(InCoordinates, InSquareUnitDistance);
-
-		int NumberOfAdjacentBombs = 0;
-		for (const auto AdjacentCellCoordinates : AdjacentCellsCoordinates) {
-			if (Matrix->Get(AdjacentCellCoordinates).CellState == EMinesweeperCellState::Bomb) {
-				NumberOfAdjacentBombs++;
-			}
-		}
-
-		return NumberOfAdjacentBombs;
-	}
+	int CountAdjacentBombs(const FMinesweeperCellCoordinate& InCoordinates, int InSquareUnitDistance = 1);
 
 private:
 	TWeakPtr<ICellMatrix<FMinesweeperCell>> _matrix;

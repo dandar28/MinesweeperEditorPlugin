@@ -2,6 +2,8 @@
 
 #include "CoreMinimal.h"
 
+#include "StateMachine/FAbstractLogicState.h"
+
 #include "FMinesweeperCellCoordinate.h"
 
 /**
