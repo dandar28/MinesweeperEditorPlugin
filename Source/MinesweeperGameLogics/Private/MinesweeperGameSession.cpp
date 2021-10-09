@@ -68,6 +68,14 @@ void FMinesweeperGameDataState::ClearAndPlaceRandomMines(int InNumberOfMines) {
 	}
 }
 
+void FGameOverLogicState::OnEnter() {
+	check(GameSession.IsValid());
+	check(GameDataState.IsValid());
+
+	GameSession.Pin()->OnGameOver.Broadcast();
+	GameDataState.Pin()->UncoverAllCells();
+}
+
 void FPlayingLogicState::FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
 	check(GameDataState.IsValid());
 

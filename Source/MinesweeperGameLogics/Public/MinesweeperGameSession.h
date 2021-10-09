@@ -245,6 +245,8 @@ struct MINESWEEPERGAMELOGICS_API FGameOverLogicState : public IMinesweeperGameLo
 
 	void FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) override {}
 	void SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) override {}
+
+	void OnEnter() override;
 };
 
 struct MINESWEEPERGAMELOGICS_API FPlayingLogicState : public IMinesweeperGameLogicState {
@@ -261,6 +263,8 @@ struct MINESWEEPERGAMELOGICS_API FMinesweeperGameSettings {
 	FIntPoint MatrixBoardSize;
 	int NumberOfMines = 0;
 };
+
+DECLARE_MULTICAST_DELEGATE(FOnGameOver);
 
 /**
  * \brief - Class hosting a game session of minesweeper
@@ -280,6 +284,8 @@ public:
 
 	void FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates);
 	void SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates);
+
+	FOnGameOver OnGameOver;
 
 private:
 	bool _bIsRunning = false;
