@@ -51,7 +51,7 @@ void FMinesweeperEditorPluginModule::PluginButtonClicked()
 	FMinesweeperGameSettings GameSettings;
 	GameSettings.MatrixBoardSize.X = 9;
 	GameSettings.MatrixBoardSize.Y = 9;
-	GameSettings.NumberOfMines = 6;
+	GameSettings.NumberOfMines = 10;
 
 	const auto GameSession = MakeShared<FMinesweeperGameSession>();
 	GameSession->Startup();
