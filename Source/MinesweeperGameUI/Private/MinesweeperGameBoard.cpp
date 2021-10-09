@@ -1,5 +1,7 @@
 #include "MinesweeperGameBoard.h"
 
+#include "Widgets/Layout/SScaleBox.h"
+
 void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	bCanSupportFocus = true;
 
@@ -14,7 +16,9 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 
 	_cellsGridPanel =
 		SNew(SUniformGridPanel)
-		.SlotPadding(FMargin(5.0f));
+		.SlotPadding(FMargin(2.0f))
+		.MinDesiredSlotWidth(40)
+		.MinDesiredSlotHeight(40);
 
 	ChildSlot
 		[
@@ -147,7 +151,8 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 				]
 			]
 			+ SVerticalBox::Slot()
-			.AutoHeight()
+			.VAlign(VAlign_Fill)
+			.FillHeight(1.f)
 			.Padding(12.0f, 0.0f, 12.0f, 12.0f)
 			[
 				SNew(SOverlay)
@@ -162,7 +167,13 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 				.HAlign(HAlign_Fill)
 				.VAlign(VAlign_Fill)
 				[
-					_cellsGridPanel.ToSharedRef()
+					SNew(SScaleBox)
+					.StretchDirection(EStretchDirection::Both)
+					.Stretch(EStretch::ScaleToFit)
+					.Content()
+					[
+						_cellsGridPanel.ToSharedRef()
+					]
 				]
 			]
 		];
@@ -228,6 +239,8 @@ void SMinesweeperGameBoard::PopulateGrid() {
 			_cellsGridPanel->AddSlot(ColumnIndex, RowIndex)
 				[
 					SNew(SButton)
+					.HAlign(HAlign_Fill)
+					.VAlign(VAlign_Fill)
 					.Text(FText::FromString(CurrentCellText))
 					.ButtonColorAndOpacity(CurrentCellColor)
 					.OnClicked_Lambda([this, CellCoordinates]() {
