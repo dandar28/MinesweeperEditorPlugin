@@ -22,7 +22,6 @@ public:
 	virtual void OnExit() = 0;
 };
 
-
 class MINESWEEPERGAMELOGICS_API FAbstractLogicState : public ILogicState {
 public:
 	virtual ~FAbstractLogicState() = default;
@@ -75,6 +74,8 @@ enum MINESWEEPERGAMELOGICS_API EMinesweeperCellState {
 	Bomb
 };
 
+using FMinesweeperCellCoordinate = FIntPoint;
+
 /**
  * \brief - Structure representing a minesweeper cell
  */
@@ -123,6 +124,33 @@ struct MINESWEEPERGAMELOGICS_API FMatrixNavigator {
 
 private:
 	TWeakPtr<ICellMatrix<CellType>> _matrix;
+};
+
+struct MINESWEEPERGAMELOGICS_API FMinesweeperMatrixNavigator {
+	FMinesweeperMatrixNavigator(const TSharedRef<ICellMatrix<FMinesweeperCell>>& matrix) {
+		_matrix = matrix;
+	}
+
+	TArray<FIntPoint> GetAdjacentsTo(const FMinesweeperCellCoordinate& InCoordinates, int InSquareUnitDistance = 1) {
+		return FMatrixNavigator<FMinesweeperCell>(_matrix.Pin().ToSharedRef()).GetAdjacentsTo(InCoordinates, InSquareUnitDistance);
+	}
+
+	int CountAdjacentBombs(const FMinesweeperCellCoordinate& InCoordinates, int InSquareUnitDistance = 1) {
+		const auto Matrix = _matrix.Pin();
+		const auto AdjacentCellsCoordinates = GetAdjacentsTo(InCoordinates, InSquareUnitDistance);
+
+		int NumberOfAdjacentBombs = 0;
+		for (const auto AdjacentCellCoordinates : AdjacentCellsCoordinates) {
+			if (Matrix->Get(AdjacentCellCoordinates).CellState == EMinesweeperCellState::Bomb) {
+				NumberOfAdjacentBombs++;
+			}
+		}
+
+		return NumberOfAdjacentBombs;
+	}
+
+private:
+	TWeakPtr<ICellMatrix<FMinesweeperCell>> _matrix;
 };
 
 template <typename CellType>
@@ -188,8 +216,6 @@ struct MINESWEEPERGAMELOGICS_API FMinesweeperGameDataState {
 	void ClearMatrixCells();
 	void ClearAndPlaceRandomMines(int InNumberOfMines);
 };
-
-using FMinesweeperCellCoordinate = FIntPoint;
 
 /**
  * \brief - Interface handling the game logic state of a minesweeper game session
