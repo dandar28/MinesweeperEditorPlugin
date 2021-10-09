@@ -213,6 +213,9 @@ struct MINESWEEPERGAMELOGICS_API FMinesweeperGameDataState {
 
 	void RebuildMatrix(int InWidth, int InHeight);
 
+	void ForeachCell(const TFunction<void(FMinesweeperCell&)>& InPredicate);
+
+	void UncoverAllCells();
 	void ClearMatrixCells();
 	void ClearAndPlaceRandomMines(int InNumberOfMines);
 };

@@ -22,19 +22,34 @@ void FMinesweeperGameDataState::RebuildMatrix(int InWidth, int InHeight) {
 	ClearMatrixCells();
 }
 
-void FMinesweeperGameDataState::ClearMatrixCells() {
+void FMinesweeperGameDataState::ForeachCell(const TFunction<void(FMinesweeperCell&)>& InPredicate) {
+	check(!!InPredicate);
 	check(Matrix.IsValid());
 
-	// Fill all cells with default empty mine cells
 	for (int CurrentColumn = 0; CurrentColumn < Matrix->GetSize().X; CurrentColumn++) {
 		for (int CurrentRow = 0; CurrentRow < Matrix->GetSize().Y; CurrentRow++) {
-			Matrix->Get(FMinesweeperCellCoordinate(CurrentColumn, CurrentRow)) = FMinesweeperCell();
+			FMinesweeperCell& CurrentCell = Matrix->Get(FMinesweeperCellCoordinate(CurrentColumn, CurrentRow));
+			InPredicate(CurrentCell);
 		}
 	}
 }
 
+void FMinesweeperGameDataState::UncoverAllCells() {
+	ForeachCell([](FMinesweeperCell& InRefCurrentCell) {
+		InRefCurrentCell.bIsCovered = false;
+	});
+}
+
+void FMinesweeperGameDataState::ClearMatrixCells() {
+	ForeachCell([](FMinesweeperCell& InRefCurrentCell) {
+		InRefCurrentCell = FMinesweeperCell();
+	});
+}
+
 void FMinesweeperGameDataState::ClearAndPlaceRandomMines(int InNumberOfMines) {
 	check(Matrix.IsValid());
+
+	ClearMatrixCells();
 
 	const int NumberOfCells = Matrix->GetNumberOfCells();
 	check(NumberOfCells > 0);
