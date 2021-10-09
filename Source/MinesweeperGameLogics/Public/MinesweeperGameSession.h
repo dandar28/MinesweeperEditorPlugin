@@ -269,7 +269,7 @@ class MINESWEEPERGAMELOGICS_API FMinesweeperGameSession
 	, public TGameStateHolder<FMinesweeperGameDataState>
 	, public TSharedFromThis<FMinesweeperGameSession> {
 public:
-	virtual ~FMinesweeperGameSession() = default;
+	virtual ~FMinesweeperGameSession();
 
 	void Startup() override;	
 	void Shutdown() override;

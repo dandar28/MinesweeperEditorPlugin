@@ -112,6 +112,12 @@ void FPlayingLogicState::_uncoverAdjacents(const FMinesweeperCellCoordinate& InC
 	}
 }
 
+FMinesweeperGameSession::~FMinesweeperGameSession() {
+	if (IsRunning()) {
+		Shutdown();
+	}
+}
+
 void FMinesweeperGameSession::Startup() {
 	_bIsRunning = true;
 	_gameDataState = MakeShared<FMinesweeperGameDataState>();
@@ -126,6 +132,7 @@ void FMinesweeperGameSession::Startup() {
 
 void FMinesweeperGameSession::Shutdown() {
 	_gameLogicStateMachine->GoToState<FIdleLogicState>();
+	_gameLogicStateMachine->OnLogicStateChanged.Clear();
 	_bIsRunning = false;
 	_gameDataState.Reset();
 }
