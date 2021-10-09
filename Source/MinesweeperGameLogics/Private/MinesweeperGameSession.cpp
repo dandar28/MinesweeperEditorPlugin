@@ -122,9 +122,13 @@ void FMinesweeperGameSession::Startup() {
 	_bIsRunning = true;
 	_gameDataState = MakeShared<FMinesweeperGameDataState>();
 
+	TWeakPtr<FMinesweeperGameSession> ThisWeakSession = this->AsShared();
+
 	// Add lambda to always inject the game data state to the new logic states when a transition happens
-	_gameLogicStateMachine->OnLogicStateChanged.AddLambda([this](TSharedRef<FAbstractLogicState> InNewState) {
-		StaticCastSharedRef<IMinesweeperGameLogicState>(InNewState)->GameDataState = _gameDataState;
+	_gameLogicStateMachine->OnLogicStateChanged.AddLambda([ThisWeakSession](TSharedRef<FAbstractLogicState> InNewState) {
+		auto NewMinesweeperGameLogicState = StaticCastSharedRef<IMinesweeperGameLogicState>(InNewState);
+		NewMinesweeperGameLogicState->GameDataState = ThisWeakSession.IsValid() ? ThisWeakSession.Pin()->_gameDataState : nullptr;
+		NewMinesweeperGameLogicState->GameSession = ThisWeakSession;
 	});
 
 	_gameLogicStateMachine->GoToState<FIdleLogicState>();
