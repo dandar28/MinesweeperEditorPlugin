@@ -177,6 +177,7 @@ void SMinesweeperGameBoard::PopulateGrid() {
 
 	for (int ColumnIndex = 0; ColumnIndex < BoardMatrixSize.X; ColumnIndex++) {
 		for (int RowIndex = 0; RowIndex < BoardMatrixSize.Y; RowIndex++) {
+			FLinearColor CurrentCellColor = FLinearColor::White;
 			FString CurrentCellText = "?";
 			const FMinesweeperCellCoordinate CurrentCellCoordinates = FMinesweeperCellCoordinate(ColumnIndex, RowIndex);
 			const FMinesweeperCell CurrentCell = Matrix->Get(CurrentCellCoordinates);
@@ -186,9 +187,26 @@ void SMinesweeperGameBoard::PopulateGrid() {
 				switch (CurrentCell.CellState) {
 				case EMinesweeperCellState::Empty:
 					CurrentCellText = "";
+
 					CountOfAdjacentBombs = FMinesweeperMatrixNavigator(Matrix.ToSharedRef()).CountAdjacentBombs(CurrentCellCoordinates);
 					if (CountOfAdjacentBombs > 0) {
 						CurrentCellText = FString::FromInt(CountOfAdjacentBombs);
+					}
+
+					switch (CountOfAdjacentBombs) {
+					case 0:
+						CurrentCellColor = FLinearColor::Transparent;
+						break;
+					case 1:
+						CurrentCellColor = FLinearColor::Blue;
+						break;
+					case 2:
+						CurrentCellColor = FLinearColor::Green;
+						break;
+					case 3:
+					default:
+						CurrentCellColor = FLinearColor::Red;
+						break;
 					}
 					break;
 				case EMinesweeperCellState::Bomb:
@@ -196,6 +214,7 @@ void SMinesweeperGameBoard::PopulateGrid() {
 					break;
 				}
 			} else if (CurrentCell.bIsFlagged) {
+				CurrentCellColor = FLinearColor::Yellow;
 				CurrentCellText = "FLAG";
 			}
 
@@ -203,7 +222,8 @@ void SMinesweeperGameBoard::PopulateGrid() {
 			_cellsGridPanel->AddSlot(ColumnIndex, RowIndex)
 				[
 					SNew(SButton)
-					.Text(FText::FromString(CurrentCellText/*FString::Printf(TEXT("%d x %d"), ColumnIndex, RowIndex)*/))
+					.Text(FText::FromString(CurrentCellText))
+					.ButtonColorAndOpacity(CurrentCellColor)
 					.OnClicked_Lambda([this, CellCoordinates]() {
 						RunAction(CellCoordinates);
 						return FReply::Handled();
