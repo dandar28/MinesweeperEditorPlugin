@@ -1,5 +1,3 @@
-// Copyright (c) 2014-2021 Zuru Tech HK Limited, All rights reserved.
-
 #include "MinesweeperGameUIModule.h"
 
 IMPLEMENT_MODULE(FMinesweeperGameUIModule, MinesweeperGameUI);

@@ -6,7 +6,9 @@
 #include "Misc/MessageDialog.h"
 #include "ToolMenus.h"
 
-#include "MinesweeperGameSession.h"
+#include "Minesweeper/FMinesweeperGameSession.h"
+#include "Minesweeper/FMinesweeperGameSettings.h"
+
 #include "MinesweeperGameBoard.h"
 
 static const FName MinesweeperEditorPluginTabName("MinesweeperEditorPlugin");

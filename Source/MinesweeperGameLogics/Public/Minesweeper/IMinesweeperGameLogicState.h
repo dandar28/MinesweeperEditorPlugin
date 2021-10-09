@@ -1,0 +1,22 @@
+#pragma once
+
+#include "CoreMinimal.h"
+
+#include "StateMachine/FAbstractLogicState.h"
+
+#include "FMinesweeperCellCoordinate.h"
+
+/**
+ * \brief - Interface representing a game logic state of a minesweeper game session.
+ */
+class MINESWEEPERGAMELOGICS_API IMinesweeperGameLogicState
+	: public FAbstractLogicState {
+public:
+	virtual ~IMinesweeperGameLogicState() = default;
+
+	virtual void FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) = 0;
+	virtual void SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) = 0;
+
+	TWeakPtr<FMinesweeperGameDataState> GameDataState;
+	TWeakPtr<class FMinesweeperGameSession> GameSession;
+};

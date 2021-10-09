@@ -3,9 +3,14 @@
 #include "SlateBasics.h"
 #include "SlateExtras.h"
 
-#include "MinesweeperGameSession.h"
+#include "Minesweeper/FMinesweeperGameSession.h"
 
-class MINESWEEPERGAMEUI_API SMinesweeperGameBoard : public SCompoundWidget {
+/**
+ * \brief - Slate widget that renders a minesweeper game board visually and handles the
+ *			game logic bindings with the UI updates through an instanced game session.
+ */
+class MINESWEEPERGAMEUI_API SMinesweeperGameBoard
+	: public SCompoundWidget {
 public:
 
 	SLATE_BEGIN_ARGS(SMinesweeperGameBoard)
