@@ -171,13 +171,39 @@ bool SMinesweeperGameBoard::SupportsKeyboardFocus() const {
 void SMinesweeperGameBoard::PopulateGrid() {
 	const FIntPoint BoardMatrixSize = _gameSession->GetGameDataState()->Matrix->GetSize();
 
+	_cellsGridPanel->ClearChildren();
+
+	const auto Matrix = _gameSession->GetGameDataState()->Matrix;
+
 	for (int ColumnIndex = 0; ColumnIndex < BoardMatrixSize.X; ColumnIndex++) {
 		for (int RowIndex = 0; RowIndex < BoardMatrixSize.Y; RowIndex++) {
+			FString CurrentCellText = "?";
+			const FMinesweeperCellCoordinate CurrentCellCoordinates = FMinesweeperCellCoordinate(ColumnIndex, RowIndex);
+			const FMinesweeperCell CurrentCell = Matrix->Get(CurrentCellCoordinates);
+			int CountOfAdjacentBombs = 0;
+
+			if (!CurrentCell.bIsCovered) {
+				switch (CurrentCell.CellState) {
+				case EMinesweeperCellState::Empty:
+					CurrentCellText = "";
+					CountOfAdjacentBombs = FMinesweeperMatrixNavigator(Matrix.ToSharedRef()).CountAdjacentBombs(CurrentCellCoordinates);
+					if (CountOfAdjacentBombs > 0) {
+						CurrentCellText = FString::FromInt(CountOfAdjacentBombs);
+					}
+					break;
+				case EMinesweeperCellState::Bomb:
+					CurrentCellText = "BOMB";
+					break;
+				}
+			} else if (CurrentCell.bIsFlagged) {
+				CurrentCellText = "FLAG";
+			}
+
 			const auto CellCoordinates = FMinesweeperCellCoordinate(ColumnIndex, RowIndex);
 			_cellsGridPanel->AddSlot(ColumnIndex, RowIndex)
 				[
 					SNew(SButton)
-					.Text(FText::FromString(FString::Printf(TEXT("%d x %d"), ColumnIndex, RowIndex)))
+					.Text(FText::FromString(CurrentCellText/*FString::Printf(TEXT("%d x %d"), ColumnIndex, RowIndex)*/))
 					.OnClicked_Lambda([this, CellCoordinates]() {
 						RunAction(CellCoordinates);
 						return FReply::Handled();
@@ -189,6 +215,8 @@ void SMinesweeperGameBoard::PopulateGrid() {
 
 void SMinesweeperGameBoard::RunAction(const FMinesweeperCellCoordinate& InCoordinates) {
 	_actionFunctions[_selectedActionIndex](_gameSession, InCoordinates);
+
+	PopulateGrid();
 }
 
 void SMinesweeperGameBoard::OnSelectedActionChanged(TSharedPtr<FText> InNewItem, ESelectInfo::Type InSelectType) {
