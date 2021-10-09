@@ -13,5 +13,8 @@ public:
 	void FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) override {}
 	void SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) override {}
 
+	/**
+	 * \brief - When entering the game over state, broadcast OnGameOver event and reveal all cells.
+	 */
 	void OnEnter() override;
 };

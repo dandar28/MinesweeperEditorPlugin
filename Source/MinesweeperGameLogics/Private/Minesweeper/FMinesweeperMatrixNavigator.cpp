@@ -5,8 +5,8 @@
 #include "Minesweeper/FMinesweeperCell.h"
 #include "Minesweeper/FMinesweeperCellCoordinate.h"
 
-inline FMinesweeperMatrixNavigator::FMinesweeperMatrixNavigator(const TSharedRef<ICellMatrix<FMinesweeperCell>>& matrix) {
-	_matrix = matrix;
+inline FMinesweeperMatrixNavigator::FMinesweeperMatrixNavigator(const TSharedRef<ICellMatrix<FMinesweeperCell>>& InMatrix) {
+	_matrix = InMatrix;
 }
 
 inline TArray<FIntPoint> FMinesweeperMatrixNavigator::GetAdjacentsTo(const FMinesweeperCellCoordinate& InCoordinates, int InSquareUnitDistance) {

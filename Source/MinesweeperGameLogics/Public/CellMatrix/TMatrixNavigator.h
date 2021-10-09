@@ -10,10 +10,19 @@
 template <typename CellType>
 class MINESWEEPERGAMELOGICS_API TMatrixNavigator {
 public:
-	TMatrixNavigator(const TSharedRef<ICellMatrix<CellType>>& matrix) {
-		_matrix = matrix;
+	/**
+	 * \brief - Construct this decorator with the target matrix on which we want to add functionalities.
+	 * \param[in] InMatrix - Target matrix to decorate.
+	 */
+	TMatrixNavigator(const TSharedRef<ICellMatrix<CellType>>& InMatrix) {
+		_matrix = InMatrix;
 	}
 
+	/**
+	 * \brief - Get array of cell coordinates that are adjacent to certain cell coordinates within a certain square unit distance.
+	 * \param[in] InCoordinates - Target coordinates for which we want to get the adjacent cell coordinates.
+	 * \param[in] InSquareUnitDistance - Number of square distance of cells to search around for.
+	 */
 	TArray<FIntPoint> GetAdjacentsTo(const FIntPoint& InCoordinates, int InSquareUnitDistance = 1) {
 		check(_matrix.IsValid());
 		auto Matrix = _matrix.Pin();
@@ -33,5 +42,8 @@ public:
 	}
 
 private:
+	/**
+	 * \brief - Matrix on which this decorator adds functionalities.
+	 */
 	TWeakPtr<ICellMatrix<CellType>> _matrix;
 };
