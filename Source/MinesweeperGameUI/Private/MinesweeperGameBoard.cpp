@@ -2,6 +2,8 @@
 
 #include "Widgets/Layout/SScaleBox.h"
 
+#include "Minesweeper/FMinesweeperMatrixNavigator.h"
+
 void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	bCanSupportFocus = true;
 

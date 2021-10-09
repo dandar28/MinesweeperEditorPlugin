@@ -1,4 +1,28 @@
-#include "MinesweeperGameSession.h"
+#include "CellMatrix/ICellMatrix.h"
+#include "CellMatrix/TCellMatrix.h"
+#include "CellMatrix/TFixedSizeCellMatrix.h"
+#include "CellMatrix/TMatrixNavigator.h"
+
+#include "GameSession/IGameSession.h"
+#include "GameSession/TGameStateHolder.h"
+
+#include "StateMachine/ILogicState.h"
+#include "StateMachine/FAbstractLogicState.h"
+#include "StateMachine/FGameStateMachine.h"
+
+#include "Minesweeper/EMinesweeperCellFlags.h"
+#include "Minesweeper/EMinesweeperCellState.h"
+#include "Minesweeper/FMinesweeperCell.h"
+#include "Minesweeper/FMinesweeperCellCoordinate.h"
+#include "Minesweeper/FMinesweeperGameDataState.h"
+#include "Minesweeper/FMinesweeperGameSession.h"
+#include "Minesweeper/FMinesweeperGameSettings.h"
+#include "Minesweeper/FMinesweeperMatrixNavigator.h"
+#include "Minesweeper/IMinesweeperGameLogicState.h"
+
+#include "Minesweeper/LogicStates/FIdleLogicState.h"
+#include "Minesweeper/LogicStates/FPlayingLogicState.h"
+#include "Minesweeper/LogicStates/FGameOverLogicState.h"
 
 TSharedRef<ILogicState> FGameStateMachine::GetGameLogicState() const {
 	return _logicState.ToSharedRef();
@@ -116,7 +140,7 @@ void FPlayingLogicState::_revealAdjacents(const FMinesweeperCellCoordinate& InCo
 		return;
 	}
 
-	TArray<FIntPoint> AdjacentCellsCoordinates = FMatrixNavigator<FMinesweeperCell>(Matrix).GetAdjacentsTo(InCoordinates);
+	TArray<FIntPoint> AdjacentCellsCoordinates = TMatrixNavigator<FMinesweeperCell>(Matrix).GetAdjacentsTo(InCoordinates);
 	for (const auto& AdjacentCellCoordinates : AdjacentCellsCoordinates) {
 		if (!Matrix->Has(AdjacentCellCoordinates)) {
 			continue;

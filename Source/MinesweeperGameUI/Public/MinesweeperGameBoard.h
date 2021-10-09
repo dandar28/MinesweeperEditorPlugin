@@ -3,7 +3,7 @@
 #include "SlateBasics.h"
 #include "SlateExtras.h"
 
-#include "MinesweeperGameSession.h"
+#include "Minesweeper/FMinesweeperGameSession.h"
 
 class MINESWEEPERGAMEUI_API SMinesweeperGameBoard : public SCompoundWidget {
 public:
