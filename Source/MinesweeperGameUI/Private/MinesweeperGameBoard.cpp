@@ -201,7 +201,7 @@ void SMinesweeperGameBoard::PopulateGrid() {
 
 					switch (CountOfAdjacentBombs) {
 					case 0:
-						CurrentCellColor = FLinearColor::Transparent;
+						CurrentCellColor = FLinearColor(0.4, 0.4, 0.4);
 						break;
 					case 1:
 						CurrentCellColor = FLinearColor::Blue;
