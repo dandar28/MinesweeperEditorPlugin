@@ -2,6 +2,10 @@
 
 #include "CoreMinimal.h"
 
+/**
+ * \brief - Templated structure implementing builder pattern for easily constructing it in a chainable way.
+ *			This class works as a descriptor for a numeric setting entry to be created.
+ */
 template <typename NumberType>
 struct TNumericSettingEntry {
 	TNumericSettingEntry<NumberType>& SetEntryName(const FString& InEntryName) {

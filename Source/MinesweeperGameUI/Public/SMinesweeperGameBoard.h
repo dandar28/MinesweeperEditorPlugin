@@ -129,16 +129,38 @@ private:
 	 */
 	int32 _selectedActionIndex = 0;
 
+	/**
+	 * \brief - Slate object of the numeric entry of the Width setting.
+	 */
 	TSharedPtr<SNumericEntryBox<int>> _numericEntryWidth;
+
+	/**
+	 * \brief - Slate object of the numeric entry of the Height setting.
+	 */
 	TSharedPtr<SNumericEntryBox<int>> _numericEntryHeight;
+
+	/**
+	 * \brief - Slate object of the numeric entry of the NumberOfMines setting.
+	 */
 	TSharedPtr<SNumericEntryBox<int>> _numericEntryNumberOfMines;
+
+	/**
+	 * \brief - Shared pointer to the actual instance of the game settings updated from the UI.
+	 */
 	TSharedPtr<FMinesweeperGameSettings> _gameSettings;
 	
+	/**
+	 * \brief - Enum containing the available difficulty levels settable for the game.
+	 */
 	enum EDifficultyLevel {
 		Beginner,
 		Intermediate,
 		Expert,
 		Custom
 	};
+
+	/**
+	 * \brief - Map that binds each difficulty level to a different default setting instance.
+	 */
 	TMap<EDifficultyLevel, FMinesweeperGameSettings> _difficultyLevelsSettings;
 };
