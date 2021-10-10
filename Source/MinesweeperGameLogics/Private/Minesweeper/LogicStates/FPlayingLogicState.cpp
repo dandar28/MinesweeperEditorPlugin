@@ -40,36 +40,7 @@ void FPlayingLogicState::SweepOnCell(const FMinesweeperCellCoordinate& InCoordin
 		break;
 	case EMinesweeperCellState::Empty:
 		// When interacting with an empty space, reveal all its adjacent empty cells recursively (until some bombs are reached in order to stop recursing).
-		_revealAdjacents(InCoordinates);
-	}
-}
-
-void FPlayingLogicState::_revealAdjacents(const FMinesweeperCellCoordinate& InCoordinates) {
-	auto Matrix = GameDataState.Pin()->Matrix.ToSharedRef();
-
-	// Count the adjacent bombs to the input coordinates.
-	const int NumOfAdjacentBombs = FMinesweeperMatrixNavigator(Matrix).CountAdjacentBombs(InCoordinates);
-
-	// If the input cell has at least one adjacent bomb, stop revealing adjacent empty cells.
-	if (NumOfAdjacentBombs > 0 ) {
-		return;
-	}
-
-	TArray<FIntPoint> AdjacentCellsCoordinates = TMatrixNavigator<FMinesweeperCell>(Matrix).GetAdjacentsTo(InCoordinates);
-	for (const auto& AdjacentCellCoordinates : AdjacentCellsCoordinates) {
-		if (!Matrix->Has(AdjacentCellCoordinates)) {
-			continue;
-		}
-
-		// For each adjacent cell that has not been revealed yet and it is empty, reveal it.
-		auto& AdjacentCell = Matrix->Get(AdjacentCellCoordinates);
-		if (!AdjacentCell.IsRevealed() && AdjacentCell.CellState == EMinesweeperCellState::Empty) {
-			AdjacentCell.SetRevealed(true);
-
-			// If the revealed empty cell has no adjacent bombs, reveal also its adjacent empty spaces by recursing on it.
-			if (FMinesweeperMatrixNavigator(Matrix).CountAdjacentBombs(AdjacentCellCoordinates) == 0) {
-				_revealAdjacents(AdjacentCellCoordinates);
-			}
-		}
+		auto MinesweeperMatrixNavigator = FMinesweeperMatrixNavigator(GameDataStatePinned->Matrix.ToSharedRef());
+		MinesweeperMatrixNavigator.RevealAdjacentEmptyCellsRecursively(InCoordinates);
 	}
 }

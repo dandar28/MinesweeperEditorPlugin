@@ -33,6 +33,13 @@ struct MINESWEEPERGAMELOGICS_API FMinesweeperMatrixNavigator {
 	 */
 	int CountAdjacentBombs(const FMinesweeperCellCoordinate& InCoordinates, int InSquareUnitDistance = 1);
 
+	/**
+	 * \brief - Reveal all the adjacent empty cells around the one at the input coordinates, 
+	 *			and do it recursively for each neighbour empty cell.
+	 * \param[in] InCoordinates - Target coordinates from which we want to reveal the adjacent empty cells and recurse.
+	 */
+	void RevealAdjacentEmptyCellsRecursively(const FMinesweeperCellCoordinate& InCoordinates);
+
 private:
 	/**
 	 * \brief - Matrix on which this decorator adds functionalities.
