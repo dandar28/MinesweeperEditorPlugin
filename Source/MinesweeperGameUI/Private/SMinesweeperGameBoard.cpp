@@ -184,7 +184,9 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 		];
 
 	// Update the grid view.
-	PopulateGrid();
+	if (_gameSession->IsRunning()) {
+		PopulateGrid();
+	}
 }
 
 bool SMinesweeperGameBoard::SupportsKeyboardFocus() const {
@@ -200,6 +202,8 @@ void SMinesweeperGameBoard::StartGameWithCurrentSettings() {
 }
 
 void SMinesweeperGameBoard::PopulateGrid() {
+	check(_gameSession.IsValid());
+
 	const auto Matrix = _gameSession->GetGameDataState()->Matrix;
 	const FIntPoint BoardMatrixSize = Matrix->GetSize();
 
@@ -218,6 +222,8 @@ void SMinesweeperGameBoard::PopulateGrid() {
 }
 
 void SMinesweeperGameBoard::RunAction(const FMinesweeperCellCoordinate& InCoordinates) {
+	check(_gameSession.IsValid());
+
 	_actionFunctions[_selectedActionIndex](_gameSession, InCoordinates);
 
 	PopulateGrid();
@@ -234,6 +240,8 @@ FText SMinesweeperGameBoard::GetSelectedActionOption() const {
 }
 
 TSharedRef<SWidget> SMinesweeperGameBoard::_makeWidgetForCell(const FMinesweeperCellCoordinate& InCellCoordinates, const FMinesweeperCell& InCell) {
+	check(_gameSession.IsValid());
+
 	const auto Matrix = _gameSession->GetGameDataState()->Matrix;
 
 	FLinearColor CurrentCellColor = FLinearColor::White;
