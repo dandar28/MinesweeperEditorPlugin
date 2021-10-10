@@ -5,6 +5,12 @@
 #include "Minesweeper/FMinesweeperMatrixNavigator.h"
 
 TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeSettingsArea(const TFunction<void()>& InPlayButtonClicked) {
+	const auto BombsCountValueClamper = [this](int InValue) -> int {
+		const auto MatrixSize = _gameSettings->MatrixBoardSize;
+		const int MatrixBoardArea = MatrixSize.X * MatrixSize.Y;
+		return FMath::Clamp<int>(InValue, 1, MatrixBoardArea);
+	};
+
 	const float LateralPadding = 12.0f;
 	return
 		SNew(SVerticalBox)
@@ -13,27 +19,57 @@ TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeSettingsArea(const TFunctio
 		.AutoHeight()
 		.Padding(LateralPadding, 0.0f, LateralPadding, LateralPadding)
 		[
-			_makeNumericSettingEntry(TEXT("Width"), _gameSettings->MatrixBoardSize.X, _numericEntryWidth, [this](int InNewValue) { 
-				_gameSettings->MatrixBoardSize.X = InNewValue;
-			})
+			_makeNumericSettingEntry(
+				TNumericSettingEntry<int>()
+				.SetEntryName(TEXT("Width"))
+				.SetValueGetter([this]() {
+					return _gameSettings->MatrixBoardSize.X;
+				})
+				.SetValueSetter([this](int InNewValue) {
+					_gameSettings->MatrixBoardSize.X = InNewValue;
+				})
+				.SetMinValue(1)
+				.SetMaxValue(80),
+				_numericEntryWidth
+			)
 		]
 		+ SVerticalBox::Slot()
 		.VAlign(VAlign_Fill)
 		.AutoHeight()
 		.Padding(LateralPadding, 0.0f, LateralPadding, LateralPadding)
 		[
-			_makeNumericSettingEntry(TEXT("Height"), _gameSettings->MatrixBoardSize.Y, _numericEntryHeight, [this](int InNewValue) { 
-				_gameSettings->MatrixBoardSize.Y = InNewValue;
-			})
+			_makeNumericSettingEntry(
+				TNumericSettingEntry<int>()
+				.SetEntryName(TEXT("Height"))
+				.SetValueGetter([this]() {
+					return _gameSettings->MatrixBoardSize.Y;
+				})
+				.SetValueSetter([this](int InNewValue) {
+					_gameSettings->MatrixBoardSize.Y = InNewValue;
+				})
+				.SetMinValue(1)
+				.SetMaxValue(80), 
+				_numericEntryHeight
+			)
 		]
 		+ SVerticalBox::Slot()
 		.VAlign(VAlign_Fill)
 		.AutoHeight()
 		.Padding(LateralPadding, 0.0f, LateralPadding, LateralPadding)
 		[
-			_makeNumericSettingEntry(TEXT("Number Of Mines"), _gameSettings->NumberOfMines, _numericEntryNumberOfMines, [this](int InNewValue) { 
-				_gameSettings->NumberOfMines = InNewValue;
-			})
+			_makeNumericSettingEntry(
+				TNumericSettingEntry<int>()
+				.SetEntryName(TEXT("Number Of Mines"))
+				.SetValueGetter([this, BombsCountValueClamper]() {
+					return BombsCountValueClamper(_gameSettings->NumberOfMines);
+				})
+				.SetValueSetter([this, BombsCountValueClamper](int InNewValue) {
+					_gameSettings->NumberOfMines = BombsCountValueClamper(InNewValue);
+				})
+				.SetMinValue(1)
+				.SetMaxValue(999), 
+				_numericEntryNumberOfMines
+			)
 		]
 		+ SVerticalBox::Slot()
 		.VAlign(VAlign_Fill)
@@ -130,8 +166,7 @@ TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeMainGameArea() {
 		];
 }
 
-TSharedRef<SHorizontalBox> SMinesweeperGameBoard::_makeNumericSettingEntry(const FString& InEntryName, const TOptional<int>& InDefaultValue, TSharedPtr<SNumericEntryBox<int>>& OutOwningEntryBox, const TFunction<void(int)>& InOnValueCommitted) {
-	TSharedRef<int> Value = MakeShared<int>();
+TSharedRef<SHorizontalBox> SMinesweeperGameBoard::_makeNumericSettingEntry(const TNumericSettingEntry<int>& InNumericSettingEntry, TSharedPtr<SNumericEntryBox<int>>& OutOwningEntryBox) {
 	return
 		SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
@@ -141,7 +176,7 @@ TSharedRef<SHorizontalBox> SMinesweeperGameBoard::_makeNumericSettingEntry(const
 		.Padding(0.0f)
 		[
 			SNew(STextBlock)
-			.Text(FText::FromString(InEntryName))
+			.Text(FText::FromString(InNumericSettingEntry.EntryName))
 			.Justification(ETextJustify::Type::Left)
 			.MinDesiredWidth(60)
 		]
@@ -152,17 +187,15 @@ TSharedRef<SHorizontalBox> SMinesweeperGameBoard::_makeNumericSettingEntry(const
 		.Padding(0.0f)
 		[
 			SAssignNew(OutOwningEntryBox, SNumericEntryBox<int>)
-			.Value(InDefaultValue.Get(0))
-			.AllowSpin(true)
-			.MinSliderValue(5)
-			.MaxSliderValue(90)
+			.Value(InNumericSettingEntry.ValueGetter().Get(0))
+			.MinValue(InNumericSettingEntry.MinValue)
+			.MaxValue(InNumericSettingEntry.MaxValue)
 			.MinDesiredValueWidth(200)
-			.OnValueCommitted_Lambda([InOnValueCommitted, Value](int InNewValue, ETextCommit::Type InCommitType) {
-				InOnValueCommitted(InNewValue);
-				(*Value) = InNewValue;
+			.OnValueCommitted_Lambda([InValueSetter = InNumericSettingEntry.ValueSetter](int InNewValue, ETextCommit::Type InCommitType) {
+				InValueSetter(InNewValue);
 			})
-			.Value_Lambda([OutOwningEntryBox, Value]() -> TOptional<int32> {
-				return (*Value);
+			.Value_Lambda([InValueGetter = InNumericSettingEntry.ValueGetter]() -> TOptional<int32> {
+				return InValueGetter().Get(0);
 			})
 		];
 }
@@ -174,14 +207,40 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	_gameSession = InArgs._GameSession;
 	check(_gameSession.IsValid());
 
-	// \todo : Handle this differently with predefined difficulty levels' settings.
-	if (!_gameSettings.IsSet()) {
-		FMinesweeperGameSettings DefaultGameSettings;
-		DefaultGameSettings.MatrixBoardSize.X = 9;
-		DefaultGameSettings.MatrixBoardSize.Y = 9;
-		DefaultGameSettings.NumberOfMines = 10;
+	// Populate all difficulty levels' settings
+	{
+		_difficultyLevelsSettings.Add(EDifficultyLevel::Beginner, ([]() -> FMinesweeperGameSettings {
+			FMinesweeperGameSettings EasyGameSettings;
+			EasyGameSettings.MatrixBoardSize = FIntPoint(9, 9);
+			EasyGameSettings.NumberOfMines = 10;
+			return EasyGameSettings;
+		})());
 
-		_gameSettings = DefaultGameSettings;
+		_difficultyLevelsSettings.Add(EDifficultyLevel::Intermediate, ([]() -> FMinesweeperGameSettings {
+			FMinesweeperGameSettings MediumGameSettings;
+			MediumGameSettings.MatrixBoardSize = FIntPoint(16, 16);
+			MediumGameSettings.NumberOfMines = 40;
+			return MediumGameSettings;
+		})());
+
+		_difficultyLevelsSettings.Add(EDifficultyLevel::Expert, ([]() -> FMinesweeperGameSettings {
+			FMinesweeperGameSettings MediumGameSettings;
+			MediumGameSettings.MatrixBoardSize = FIntPoint(30, 30);
+			MediumGameSettings.NumberOfMines = 99;
+			return MediumGameSettings;
+		})());
+
+		_difficultyLevelsSettings.Add(EDifficultyLevel::Custom, ([]() -> FMinesweeperGameSettings {
+			FMinesweeperGameSettings MediumGameSettings;
+			MediumGameSettings.MatrixBoardSize = FIntPoint(30, 30);
+			MediumGameSettings.NumberOfMines = 150;
+			return MediumGameSettings;
+		})());
+	}
+
+	if (!_gameSettings.IsValid()) {
+		FMinesweeperGameSettings DefaultGameSettings = _difficultyLevelsSettings[EDifficultyLevel::Beginner];
+		_gameSettings = MakeShared<FMinesweeperGameSettings>(DefaultGameSettings);
 	}
 
 	// When the player loses the game, show a popup and update the view.
@@ -239,10 +298,10 @@ bool SMinesweeperGameBoard::SupportsKeyboardFocus() const {
 
 void SMinesweeperGameBoard::StartGameWithCurrentSettings() {
 	check(_gameSession.IsValid());
-	check(_gameSettings.IsSet());
+	check(_gameSettings.IsValid());
 
 	_gameSession->Startup();
-	_gameSession->PrepareAndStartGame(_gameSettings.GetValue());
+	_gameSession->PrepareAndStartGame(*_gameSettings);
 }
 
 void SMinesweeperGameBoard::PopulateGrid() {

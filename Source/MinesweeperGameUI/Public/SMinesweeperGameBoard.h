@@ -65,7 +65,41 @@ private:
 		const FMinesweeperCell& InCell
 	);
 
-	TSharedRef<SHorizontalBox> _makeNumericSettingEntry(const FString& InEntryName, const TOptional<int>& InDefaultValue, TSharedPtr<SNumericEntryBox<int>>& OutOwningEntryBox, const TFunction<void(int)>& InOnValueCommitted);
+	template <typename NumberType>
+	struct TNumericSettingEntry {
+		TNumericSettingEntry<NumberType>& SetEntryName(const FString& InEntryName) {
+			EntryName = InEntryName;
+			return *this;
+		}
+
+		TNumericSettingEntry<NumberType>& SetMinValue(const TOptional<NumberType>& InValue) {
+			MinValue = InValue;
+			return *this;
+		}
+
+		TNumericSettingEntry<NumberType>& SetMaxValue(const TOptional<NumberType>& InValue) {
+			MaxValue = InValue;
+			return *this;
+		}
+
+		TNumericSettingEntry<NumberType>& SetValueGetter(const TFunction<TOptional<NumberType>()>& InFunction) {
+			ValueGetter = InFunction;
+			return *this;
+		}
+
+		TNumericSettingEntry<NumberType>& SetValueSetter(const TFunction<void(NumberType)>& InFunction) {
+			ValueSetter = InFunction;
+			return *this;
+		}
+
+		FString EntryName;
+		TOptional<NumberType> MinValue;
+		TOptional<NumberType> MaxValue;
+		TFunction<TOptional<NumberType>()> ValueGetter;
+		TFunction<void(NumberType)> ValueSetter;
+	};
+
+	TSharedRef<SHorizontalBox> _makeNumericSettingEntry(const TNumericSettingEntry<int>& InNumericSettingEntry, TSharedPtr<SNumericEntryBox<int>>& OutOwningEntryBox);
 	TSharedRef<SVerticalBox> _makeSettingsArea(const TFunction<void()>& InPlayButtonClicked);
 	TSharedRef<SVerticalBox> _makeMainGameArea();
 
@@ -112,5 +146,13 @@ private:
 	TSharedPtr<SNumericEntryBox<int>> _numericEntryWidth;
 	TSharedPtr<SNumericEntryBox<int>> _numericEntryHeight;
 	TSharedPtr<SNumericEntryBox<int>> _numericEntryNumberOfMines;
-	TOptional<FMinesweeperGameSettings> _gameSettings;
+	TSharedPtr<FMinesweeperGameSettings> _gameSettings;
+	
+	enum EDifficultyLevel {
+		Beginner,
+		Intermediate,
+		Expert,
+		Custom
+	};
+	TMap<EDifficultyLevel, FMinesweeperGameSettings> _difficultyLevelsSettings;
 };
