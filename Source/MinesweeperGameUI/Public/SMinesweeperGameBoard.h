@@ -3,6 +3,8 @@
 #include "SlateBasics.h"
 #include "SlateExtras.h"
 
+#include "Widgets/Input/SNumericEntryBox.h"
+
 #include "Minesweeper/FMinesweeperGameSession.h"
 
 /**
@@ -63,6 +65,10 @@ private:
 		const FMinesweeperCell& InCell
 	);
 
+	TSharedRef<SHorizontalBox> _makeNumericSettingEntry(const FString& InEntryName, const TOptional<int>& InDefaultValue, TSharedPtr<SNumericEntryBox<int>>& OutOwningEntryBox, const TFunction<void(int)>& InOnValueCommitted);
+	TSharedRef<SVerticalBox> _makeSettingsArea(const TFunction<void()>& InPlayButtonClicked);
+	TSharedRef<SVerticalBox> _makeMainGameArea();
+
 	/**
 	 * \brief - Owned game session that is running on this game board UI widget.
 	 */
@@ -102,5 +108,9 @@ private:
 	 * \brief - Currently selected action index.
 	 */
 	int32 _selectedActionIndex = 0;
+
+	TSharedPtr<SNumericEntryBox<int>> _numericEntryWidth;
+	TSharedPtr<SNumericEntryBox<int>> _numericEntryHeight;
+	TSharedPtr<SNumericEntryBox<int>> _numericEntryNumberOfMines;
 	TOptional<FMinesweeperGameSettings> _gameSettings;
 };
