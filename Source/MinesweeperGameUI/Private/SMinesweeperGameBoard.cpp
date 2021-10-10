@@ -191,6 +191,14 @@ bool SMinesweeperGameBoard::SupportsKeyboardFocus() const {
 	return true;
 }
 
+void SMinesweeperGameBoard::StartGameWithCurrentSettings() {
+	check(_gameSession.IsValid());
+	check(_gameSettings.IsSet());
+
+	_gameSession->Startup();
+	_gameSession->PrepareAndStartGame(_gameSettings.GetValue());
+}
+
 void SMinesweeperGameBoard::PopulateGrid() {
 	const auto Matrix = _gameSession->GetGameDataState()->Matrix;
 	const FIntPoint BoardMatrixSize = Matrix->GetSize();

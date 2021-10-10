@@ -25,6 +25,11 @@ public:
 	bool SupportsKeyboardFocus() const override;
 
 	/**
+	 * \brief - Startup the game with the current game settings chosen through the UI.
+	 */
+	void StartGameWithCurrentSettings();
+
+	/**
 	 * \brief - Populate the grid matrix visually by regenerating it from the current state of the game session.
 	 */
 	void PopulateGrid();
@@ -97,4 +102,5 @@ private:
 	 * \brief - Currently selected action index.
 	 */
 	int32 _selectedActionIndex = 0;
+	TOptional<FMinesweeperGameSettings> _gameSettings;
 };
