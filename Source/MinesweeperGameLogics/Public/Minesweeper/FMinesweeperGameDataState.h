@@ -27,7 +27,7 @@ public:
 	 * \brief - Execute a predicate function for each cell of the matrix.
 	 * param[in] InPredicate - Predicate function to be runned on each cell which takes a cell reference as input argument.
 	 */
-	void ForeachCell(const TFunction<void(const FMinesweeperCellCoordinate&, FMinesweeperCell&)>& InPredicate);
+	void ForeachCell(const TFunction<void(const FMinesweeperCellCoordinate&, FMinesweeperCell&)>& InPredicate) const;
 
 	/**
 	 * \brief - Reveal all the cells of the matrix.
@@ -44,4 +44,9 @@ public:
 	 * \param[in] InNumberOfMines - Number of mines to be randomly placed around the matrix.
 	 */
 	void ClearAndPlaceRandomMines(int InNumberOfMines);
+
+	/**
+	 * \brief - Check if the player won the game by checking the state of the board matrix.
+	 */
+	bool IsGameWon() const;
 };

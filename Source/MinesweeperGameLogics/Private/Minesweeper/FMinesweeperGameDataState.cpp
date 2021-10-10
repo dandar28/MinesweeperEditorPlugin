@@ -13,7 +13,7 @@ void FMinesweeperGameDataState::RebuildMatrix(int InWidth, int InHeight) {
 	ClearMatrixCells();
 }
 
-void FMinesweeperGameDataState::ForeachCell(const TFunction<void(const FMinesweeperCellCoordinate&, FMinesweeperCell&)>& InPredicate) {
+void FMinesweeperGameDataState::ForeachCell(const TFunction<void(const FMinesweeperCellCoordinate&, FMinesweeperCell&)>& InPredicate) const {
 	check(!!InPredicate);
 	check(Matrix.IsValid());
 
@@ -52,4 +52,27 @@ void FMinesweeperGameDataState::ClearAndPlaceRandomMines(int InNumberOfMines) {
 		FMinesweeperCellCoordinate PickedFreeCell = FreeCells[FMath::RandRange(0, FreeCells.Num() - 1)];
 		Matrix->Get(PickedFreeCell).CellState = EMinesweeperCellState::Bomb;
 	}
+}
+
+bool FMinesweeperGameDataState::IsGameWon() const {
+	int CountBombs = 0;
+	int CountRevealed = 0;
+	int CountCells = 0;
+
+	ForeachCell([&CountRevealed, &CountBombs, &CountCells](const FMinesweeperCellCoordinate&, FMinesweeperCell& InRefCurrentCell) {
+		if (InRefCurrentCell.IsRevealed()) {
+			CountRevealed++;
+		}
+
+		if (InRefCurrentCell.CellState == EMinesweeperCellState::Bomb) {
+			CountBombs++;
+		}
+
+		CountCells++;
+	});
+
+	check(CountCells == Matrix->GetNumberOfCells());
+
+	const bool bRevealedAllCellsExceptBombs = (CountRevealed == (CountCells - CountBombs));
+	return bRevealedAllCellsExceptBombs;
 }

@@ -294,6 +294,13 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 		_gameSettings = MakeShared<FMinesweeperGameSettings>();
 	}
 
+	// When the player wins the game, show a popup and update the view.
+	_gameSession->OnGameWin.AddLambda([this]() {
+		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString("You Won!"));
+
+		PopulateGrid();
+	});
+
 	// When the player loses the game, show a popup and update the view.
 	_gameSession->OnGameOver.AddLambda([this]() {
 		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString("You Lost!"));

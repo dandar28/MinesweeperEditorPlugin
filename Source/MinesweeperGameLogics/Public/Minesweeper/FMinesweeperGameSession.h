@@ -14,6 +14,7 @@
 #include "FMinesweeperGameSettings.h"
 
 DECLARE_MULTICAST_DELEGATE(FOnGameOver);
+DECLARE_MULTICAST_DELEGATE(FOnGameWin);
 
 /**
  * \brief - Class hosting a game session of minesweeper.
@@ -65,6 +66,11 @@ public:
 	 * \brief - Event delegate that is triggered whenever the player hits the game over on this game session.
 	 */
 	FOnGameOver OnGameOver;
+
+	/**
+	 * \brief - Event delegate that is triggered whenever the player wins the game on this game session.
+	 */
+	FOnGameWin OnGameWin;
 
 private:
 	/**
