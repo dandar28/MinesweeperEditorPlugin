@@ -262,29 +262,42 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 
 	TSharedPtr<SVerticalBox> GameViewBox = _makeMainGameArea();
 	TSharedPtr<SVerticalBox> SettingsBox = _makeSettingsArea([this, GameViewBox]() {
+		// When the game has not been started, we requested to Play the game.
 		if (!_gameSession->IsRunning()) {
+			// The game view becomes visible as long as the game is being played.
 			GameViewBox.Get()->SetVisibility(EVisibility::Visible);
 
+			// The settings become disabled as long as the game is not stopped.
 			_numericEntryWidth->SetEnabled(false);
 			_numericEntryHeight->SetEnabled(false);
 			_numericEntryNumberOfMines->SetEnabled(false);
 
+			// Start the game session with the chosen UI settings.
 			StartGameWithCurrentSettings();
+
+			// Update the view for the first time to populate the game view board matrix.
 			PopulateGrid();
 
 			return;
 		}
 
-		GameViewBox.Get()->SetVisibility(EVisibility::Hidden);
+		// When the game is running, we requested to Stop the game.
+		{
+			// Hide the game view since it is not needed until we decide to play the game again.
+			GameViewBox.Get()->SetVisibility(EVisibility::Hidden);
 
-		_numericEntryWidth->SetEnabled(true);
-		_numericEntryHeight->SetEnabled(true);
-		_numericEntryNumberOfMines->SetEnabled(true);
+			// Enable all the setting entries for being able to setup a new game session.
+			_numericEntryWidth->SetEnabled(true);
+			_numericEntryHeight->SetEnabled(true);
+			_numericEntryNumberOfMines->SetEnabled(true);
 
-		_gameSession->GetGameDataState()->ClearMatrixCells();
-		PopulateGrid();
+			// Clear the matrix cells of the current game session and update the view to clear it.
+			_gameSession->GetGameDataState()->ClearMatrixCells();
+			PopulateGrid();
 
-		_gameSession->Shutdown();
+			// Shutdown the game session in order to be logically consistent when we will start it up again.
+			_gameSession->Shutdown();
+		}
 	});
 
 	ChildSlot
