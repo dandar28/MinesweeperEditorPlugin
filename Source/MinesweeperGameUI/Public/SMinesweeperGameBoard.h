@@ -7,6 +7,8 @@
 
 #include "Minesweeper/FMinesweeperGameSession.h"
 
+#include "TNumericSettingEntry.h"
+
 /**
  * \brief - Slate widget that renders a minesweeper game board visually and handles the
  *			game logic bindings with the UI updates through an instanced game session.
@@ -64,44 +66,6 @@ private:
 		const FMinesweeperCellCoordinate& InCellCoordinates,
 		const FMinesweeperCell& InCell
 	);
-
-	template <typename NumberType>
-	struct TNumericSettingEntry {
-		TNumericSettingEntry<NumberType>& SetEntryName(const FString& InEntryName) {
-			EntryName = InEntryName;
-			return *this;
-		}
-
-		TNumericSettingEntry<NumberType>& SetMinValue(const TOptional<NumberType>& InValue) {
-			MinValue = InValue;
-			return *this;
-		}
-
-		TNumericSettingEntry<NumberType>& SetMaxValue(const TOptional<NumberType>& InValue) {
-			MaxValue = InValue;
-			return *this;
-		}
-
-		TNumericSettingEntry<NumberType>& SetValueGetter(const TFunction<TOptional<NumberType>()>& InFunction) {
-			ValueGetter = InFunction;
-			return *this;
-		}
-
-		TNumericSettingEntry<NumberType>& SetValueSetter(const TFunction<void(NumberType)>& InFunction) {
-			ValueSetter = InFunction;
-			return *this;
-		}
-
-		NumberType Clamp(NumberType InValue) const {
-			return FMath::Clamp<NumberType>(InValue, MinValue.Get(InValue), MaxValue.Get(InValue));
-		}
-
-		FString EntryName;
-		TOptional<NumberType> MinValue;
-		TOptional<NumberType> MaxValue;
-		TFunction<TOptional<NumberType>()> ValueGetter;
-		TFunction<void(NumberType)> ValueSetter;
-	};
 
 	TSharedRef<SHorizontalBox> _makeNumericSettingEntry(const TNumericSettingEntry<int>& InNumericSettingEntry, TSharedPtr<SNumericEntryBox<int>>& OutOwningEntryBox);
 	TSharedRef<SVerticalBox> _makeSettingsArea(const TFunction<void()>& InPlayButtonClicked);
