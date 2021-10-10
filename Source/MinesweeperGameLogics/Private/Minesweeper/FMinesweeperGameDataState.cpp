@@ -5,6 +5,7 @@
 
 #include "Minesweeper/FMinesweeperCellCoordinate.h"
 #include "Minesweeper/FMinesweeperCell.h"
+#include "Minesweeper/FMinesweeperMatrixNavigator.h"
 
 void FMinesweeperGameDataState::RebuildMatrix(int InWidth, int InHeight) {
 	Matrix = StaticCastSharedRef<ICellMatrix<FMinesweeperCell>>(MakeShared<TCellMatrix<FMinesweeperCell>>(InWidth, InHeight));
@@ -16,14 +17,7 @@ void FMinesweeperGameDataState::ForeachCell(const TFunction<void(const FMineswee
 	check(!!InPredicate);
 	check(Matrix.IsValid());
 
-	// Iterate all cell coordinates and, for each retrieved cell reference, call the input predicate function.
-	for (int CurrentColumn = 0; CurrentColumn < Matrix->GetSize().X; CurrentColumn++) {
-		for (int CurrentRow = 0; CurrentRow < Matrix->GetSize().Y; CurrentRow++) {
-			FMinesweeperCellCoordinate CurrentCellCoordinate(CurrentColumn, CurrentRow);
-			FMinesweeperCell& CurrentCell = Matrix->Get(CurrentCellCoordinate);
-			InPredicate(CurrentCellCoordinate, CurrentCell);
-		}
-	}
+	FMinesweeperMatrixNavigator(Matrix.ToSharedRef()).ForeachCell(InPredicate);
 }
 
 void FMinesweeperGameDataState::RevealAllCells() {

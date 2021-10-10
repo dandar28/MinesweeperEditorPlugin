@@ -46,6 +46,17 @@ public:
 	FText GetSelectedActionOption() const;
 
 private:
+	
+	/**
+	 * \brief - Make the widget representing the visual appearence for a cell.
+	 * \param[in] InCellCoordinates - Coordinates of the target cell.
+	 * \param[in] InCell - Target cell to be represented.
+	 * \return A slate widget that represents the cell visually.
+	 */
+	TSharedRef<SWidget> _makeWidgetForCell(
+		const FMinesweeperCellCoordinate& InCellCoordinates,
+		const FMinesweeperCell& InCell
+	);
 
 	/**
 	 * \brief - Owned game session that is running on this game board UI widget.

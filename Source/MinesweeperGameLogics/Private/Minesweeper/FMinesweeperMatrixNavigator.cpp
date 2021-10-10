@@ -5,13 +5,9 @@
 #include "Minesweeper/FMinesweeperCell.h"
 #include "Minesweeper/FMinesweeperCellCoordinate.h"
 
-FMinesweeperMatrixNavigator::FMinesweeperMatrixNavigator(const TSharedRef<ICellMatrix<FMinesweeperCell>>& InMatrix) {
-	_matrix = InMatrix;
-}
-
-TArray<FIntPoint> FMinesweeperMatrixNavigator::GetAdjacentsTo(const FMinesweeperCellCoordinate& InCoordinates, int InSquareUnitDistance) {
-	return TMatrixNavigator<FMinesweeperCell>(_matrix.Pin().ToSharedRef()).GetAdjacentsTo(InCoordinates, InSquareUnitDistance);
-}
+FMinesweeperMatrixNavigator::FMinesweeperMatrixNavigator(const TSharedRef<ICellMatrix<FMinesweeperCell>>& InMatrix)
+	: TMatrixNavigator<FMinesweeperCell>(InMatrix)
+{}
 
 int FMinesweeperMatrixNavigator::CountAdjacentBombs(const FMinesweeperCellCoordinate& InCoordinates, int InSquareUnitDistance) {
 	const auto Matrix = _matrix.Pin();
