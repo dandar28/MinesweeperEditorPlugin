@@ -17,6 +17,13 @@ public:
 	virtual void FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) = 0;
 	virtual void SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) = 0;
 
+	/**
+	 * \brief - Data state of the related Minesweeper game session.
+	 */
 	TWeakPtr<FMinesweeperGameDataState> GameDataState;
+
+	/**
+	 * \brief - Owning Minesweeper game session on which this state interacts.
+	 */
 	TWeakPtr<class FMinesweeperGameSession> GameSession;
 };

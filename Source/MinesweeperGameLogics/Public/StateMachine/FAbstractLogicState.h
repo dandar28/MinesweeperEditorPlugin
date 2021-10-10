@@ -15,5 +15,8 @@ public:
 	void OnEnter() override {}
 	void OnExit() override {}
 
+	/**
+	 * \brief - State Machine which owns this logic state.
+	 */
 	TWeakPtr<class FGameStateMachine> OwnerStateMachine;
 };

@@ -16,6 +16,7 @@ void FMinesweeperGameDataState::ForeachCell(const TFunction<void(FMinesweeperCel
 	check(!!InPredicate);
 	check(Matrix.IsValid());
 
+	// Iterate all cell coordinates and, for each retrieved cell reference, call the input predicate function.
 	for (int CurrentColumn = 0; CurrentColumn < Matrix->GetSize().X; CurrentColumn++) {
 		for (int CurrentRow = 0; CurrentRow < Matrix->GetSize().Y; CurrentRow++) {
 			FMinesweeperCell& CurrentCell = Matrix->Get(FMinesweeperCellCoordinate(CurrentColumn, CurrentRow));
@@ -45,6 +46,7 @@ void FMinesweeperGameDataState::ClearAndPlaceRandomMines(int InNumberOfMines) {
 	check(NumberOfCells > 0);
 	check(InNumberOfMines <= NumberOfCells);
 
+	// Populate an array of coordinates that represent the free cells of the matrix.
 	TArray<FMinesweeperCellCoordinate> FreeCells;
 	for (int CurrentColumn = 0; CurrentColumn < Matrix->GetSize().X; CurrentColumn++) {
 		for (int CurrentRow = 0; CurrentRow < Matrix->GetSize().Y; CurrentRow++) {
@@ -52,6 +54,7 @@ void FMinesweeperGameDataState::ClearAndPlaceRandomMines(int InNumberOfMines) {
 		}
 	}
 
+	// Place the mines on randomly picked free cells' coordinates.
 	for (int MineIndex = 0; MineIndex < InNumberOfMines; MineIndex++) {
 		FMinesweeperCellCoordinate PickedFreeCell = FreeCells[FMath::RandRange(0, FreeCells.Num() - 1)];
 		Matrix->Get(PickedFreeCell).CellState = EMinesweeperCellState::Bomb;

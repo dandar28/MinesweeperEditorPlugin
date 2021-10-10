@@ -12,6 +12,9 @@ struct MINESWEEPERGAMELOGICS_API ICellMatrix {
 	virtual bool Has(const FIntPoint& InCoordinates) const = 0;
 	virtual FIntPoint GetSize() const = 0;
 
+	/**
+	 * \return The total number of cells thorugh the matrix size, representing also the area.
+	 */
 	virtual int GetNumberOfCells() const {
 		const FIntPoint MatrixSize = GetSize();
 		return MatrixSize.X * MatrixSize.Y;

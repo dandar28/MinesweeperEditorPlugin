@@ -36,7 +36,9 @@ void FMinesweeperGameSession::Shutdown() {
 	_gameDataState.Reset();
 }
 
-bool FMinesweeperGameSession::IsRunning() const { return _bIsRunning; }
+bool FMinesweeperGameSession::IsRunning() const {
+	return _bIsRunning;
+}
 
 void FMinesweeperGameSession::PrepareAndStartGame(const FMinesweeperGameSettings& InSettings) {
 	check(IsRunning());
@@ -47,10 +49,14 @@ void FMinesweeperGameSession::PrepareAndStartGame(const FMinesweeperGameSettings
 
 void FMinesweeperGameSession::FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
 	check(IsRunning());
-	_gameLogicStateMachine->GetGameLogicStateAs<IMinesweeperGameLogicState>()->FlagOnCell(InCoordinates);
+
+	auto CurrentLogicState = _gameLogicStateMachine->GetGameLogicStateAs<IMinesweeperGameLogicState>();
+	CurrentLogicState->FlagOnCell(InCoordinates);
 }
 
 void FMinesweeperGameSession::SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
 	check(IsRunning());
-	_gameLogicStateMachine->GetGameLogicStateAs<IMinesweeperGameLogicState>()->SweepOnCell(InCoordinates);
+
+	auto CurrentLogicState = _gameLogicStateMachine->GetGameLogicStateAs<IMinesweeperGameLogicState>();
+	CurrentLogicState->SweepOnCell(InCoordinates);
 }

@@ -1,4 +1,4 @@
-#include "MinesweeperGameBoard.h"
+#include "SMinesweeperGameBoard.h"
 
 #include "Widgets/Layout/SScaleBox.h"
 
@@ -7,15 +7,18 @@
 void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	bCanSupportFocus = true;
 
+	// Assign the input game session and check its validity.
 	_gameSession = InArgs._GameSession;
 	check(_gameSession.IsValid());
 
+	// When the player loses the game, show a popup and update the view.
 	_gameSession->OnGameOver.AddLambda([this]() {
 		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString("You Lost!"));
 
 		PopulateGrid();
 	});
 
+	// Create a uniform grid panel to host the cells.
 	_cellsGridPanel =
 		SNew(SUniformGridPanel)
 		.SlotPadding(FMargin(2.0f))
@@ -180,6 +183,7 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 			]
 		];
 
+	// Update the grid view.
 	PopulateGrid();
 }
 
@@ -190,10 +194,12 @@ bool SMinesweeperGameBoard::SupportsKeyboardFocus() const {
 void SMinesweeperGameBoard::PopulateGrid() {
 	const FIntPoint BoardMatrixSize = _gameSession->GetGameDataState()->Matrix->GetSize();
 
+	// Clear the children of the cells grid panel in order to readd all children from zero.
 	_cellsGridPanel->ClearChildren();
 
 	const auto Matrix = _gameSession->GetGameDataState()->Matrix;
 
+	// For each cell, determine the appearence of the cell and add the element as child of the cells grid panel.
 	for (int ColumnIndex = 0; ColumnIndex < BoardMatrixSize.X; ColumnIndex++) {
 		for (int RowIndex = 0; RowIndex < BoardMatrixSize.Y; RowIndex++) {
 			FLinearColor CurrentCellColor = FLinearColor::White;
