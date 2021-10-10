@@ -21,9 +21,11 @@ public:
 	TCellMatrix(int InWidth, int InHeight) {
 		_matrixSize = FIntPoint(InWidth, InHeight);
 
+		// Reserve memory for the outer array of columns.
 		_matrixData.SetNum(InWidth);
-		for (int i = 0; i < InWidth; i++) {
-			_matrixData[i].SetNum(InHeight);
+		for (int CurrentColumnIndex = 0; CurrentColumnIndex < InWidth; CurrentColumnIndex++) {
+			// For each column, reserve memory for its inner array of rows.
+			_matrixData[CurrentColumnIndex].SetNum(InHeight);
 		}
 	}
 

@@ -27,13 +27,19 @@ public:
 		check(_matrix.IsValid());
 		auto Matrix = _matrix.Pin();
 		TArray<FIntPoint> AdjacentCells;
+
+		// Iterate bidimensionally around a square with a side of InSquareUnitDistance on all directions.
 		for (int CurrentColumn = -InSquareUnitDistance; CurrentColumn <= InSquareUnitDistance; CurrentColumn++) {
 			for (int CurrentRow = -InSquareUnitDistance; CurrentRow <= InSquareUnitDistance; CurrentRow++) {
 				if (CurrentColumn == 0 && CurrentRow == 0) {
+					// Ignore the center cell since it would be the one at the input coordinates.
 					continue;
 				}
+
+				// Obtain the adjacent cell's coordinates.
 				FIntPoint AdjacentCoordinates(InCoordinates + FIntPoint(CurrentColumn, CurrentRow));
 				if (Matrix->Has(AdjacentCoordinates)) {
+					// If the cell exists, add it to the array of adjacent cells.
 					AdjacentCells.Add(AdjacentCoordinates);
 				}
 			}
