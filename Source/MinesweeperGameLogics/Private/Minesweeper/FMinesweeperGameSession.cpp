@@ -14,8 +14,10 @@ FMinesweeperGameSession::~FMinesweeperGameSession() {
 }
 
 void FMinesweeperGameSession::Startup() {
+	// Calling Shutdown() on a running session is mandatory before calling Startup() again.
 	check(!IsRunning());
 
+	// If already running, better not starting it up again. Shutdown before!
 	if (IsRunning()) {
 		return;
 	}
