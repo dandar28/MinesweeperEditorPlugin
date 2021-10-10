@@ -6,6 +6,7 @@
 #include "Minesweeper/LogicStates/FIdleLogicState.h"
 #include "Minesweeper/LogicStates/FPlayingLogicState.h"
 #include "Minesweeper/LogicStates/FGameOverLogicState.h"
+#include "Minesweeper/LogicStates/FGameWinLogicState.h"
 
 FMinesweeperGameSession::~FMinesweeperGameSession() {
 	if (IsRunning()) {
