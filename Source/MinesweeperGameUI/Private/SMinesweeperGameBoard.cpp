@@ -191,11 +191,11 @@ TSharedRef<SHorizontalBox> SMinesweeperGameBoard::_makeNumericSettingEntry(const
 			.MinValue(InNumericSettingEntry.MinValue)
 			.MaxValue(InNumericSettingEntry.MaxValue)
 			.MinDesiredValueWidth(200)
-			.OnValueCommitted_Lambda([InValueSetter = InNumericSettingEntry.ValueSetter](int InNewValue, ETextCommit::Type InCommitType) {
-				InValueSetter(InNewValue);
+			.OnValueCommitted_Lambda([InNumericSettingEntry](int InNewValue, ETextCommit::Type InCommitType) {
+				InNumericSettingEntry.ValueSetter(InNumericSettingEntry.Clamp(InNewValue));
 			})
-			.Value_Lambda([InValueGetter = InNumericSettingEntry.ValueGetter]() -> TOptional<int32> {
-				return InValueGetter().Get(0);
+			.Value_Lambda([InNumericSettingEntry]() -> TOptional<int32> {
+				return InNumericSettingEntry.Clamp(InNumericSettingEntry.ValueGetter().Get(0));
 			})
 		];
 }

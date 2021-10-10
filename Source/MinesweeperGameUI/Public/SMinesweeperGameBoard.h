@@ -92,6 +92,10 @@ private:
 			return *this;
 		}
 
+		NumberType Clamp(NumberType InValue) const {
+			return FMath::Clamp<NumberType>(InValue, MinValue.Get(InValue), MaxValue.Get(InValue));
+		}
+
 		FString EntryName;
 		TOptional<NumberType> MinValue;
 		TOptional<NumberType> MaxValue;
