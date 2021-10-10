@@ -16,5 +16,5 @@ struct MINESWEEPERGAMELOGICS_API FMinesweeperCell {
 
 	void SetQuestionMarked(bool bQuestionMarked);
 	void SetFlagged(bool bFlagged);
-	void SetRevealed(bool bFlagged);
+	void SetRevealed(bool bRevealed);
 };
