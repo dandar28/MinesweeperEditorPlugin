@@ -67,8 +67,26 @@ private:
 		const FMinesweeperCell& InCell
 	);
 
+	/**
+	 * \brief - Make a setting entry for numeric type values through a description templated class and a reference to 
+	 *			the numeric entry box slate object to get in output.
+	 * \param[in] InNumericSettingEntry - Descriptor for the setting entry to be created.
+	 * \param[in] OutOwningEntryBox - Output shared pointer to the slate object of the created numeric entry box.
+	 * \return The slate object of the horizontal box of the full created setting entry.
+	 */
 	TSharedRef<SHorizontalBox> _makeNumericSettingEntry(const TNumericSettingEntry<int>& InNumericSettingEntry, TSharedPtr<SNumericEntryBox<int>>& OutOwningEntryBox);
+
+	/**
+	 * \brief - Make the whole area of the settings.
+	 * \param[in] InPlayButtonClicked - Callback for the OnClicked event of the PlayStop button.
+	 * \return The slate object of the vertical box of the full created settings area.
+	 */
 	TSharedRef<SVerticalBox> _makeSettingsArea(const TFunction<void()>& InPlayButtonClicked);
+
+	/**
+	 * \brief - Make the whole area of the game view where the game is played.
+	 * \return The slate object of the vertical box of the full created game area.
+	 */
 	TSharedRef<SVerticalBox> _makeMainGameArea();
 
 	/**
