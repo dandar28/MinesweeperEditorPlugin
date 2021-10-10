@@ -19,6 +19,36 @@ public:
 	}
 
 	/**
+	 * \brief - Run a predicate function for each cell coordinate.
+	 * \param[in] InPredicate - Predicate function to execute.
+	 */
+	void ForeachCellCoordinate(const TFunction<void(const FIntPoint& InCoordinates)>& InPredicate) {
+		check(!!InPredicate);
+		check(_matrix.IsValid());
+
+		const auto MatrixSize = _matrix.Pin()->GetSize();
+
+		// Iterate all cell coordinates and, for each retrieved cell reference, call the input predicate function.
+		for (int CurrentColumn = 0; CurrentColumn < MatrixSize.X; CurrentColumn++) {
+			for (int CurrentRow = 0; CurrentRow < MatrixSize.Y; CurrentRow++) {
+				FIntPoint CurrentCellCoordinate(CurrentColumn, CurrentRow);
+				InPredicate(CurrentCellCoordinate);
+			}
+		}
+	}
+
+	/**
+	 * \brief - Run a predicate function for each cell and coordinate.
+	 * \param[in] InPredicate - Predicate function to execute.
+	 */
+	void ForeachCell(const TFunction<void(const FIntPoint& InCoordinates, CellType& InRefCell)>& InPredicate) {
+		const auto Matrix = _matrix.Pin();
+		ForeachCellCoordinate([Matrix, InPredicate](const FIntPoint& InCoordinates) {
+			InPredicate(InCoordinates, Matrix->Get(InCoordinates));
+		});
+	}
+
+	/**
 	 * \brief - Get array of cell coordinates that are adjacent to certain cell coordinates within a certain square unit distance.
 	 * \param[in] InCoordinates - Target coordinates for which we want to get the adjacent cell coordinates.
 	 * \param[in] InSquareUnitDistance - Number of square distance of cells to search around for.
@@ -47,7 +77,7 @@ public:
 		return AdjacentCells;
 	}
 
-private:
+protected:
 	/**
 	 * \brief - Matrix on which this decorator adds functionalities.
 	 */
