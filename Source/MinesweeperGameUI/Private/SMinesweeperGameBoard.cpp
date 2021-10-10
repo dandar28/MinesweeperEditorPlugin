@@ -82,7 +82,10 @@ TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeSettingsArea(const TFunctio
 			.Content()
 			[
 				SNew(SButton)
-				.Text(FText::FromString(TEXT("Play!")))
+				.Text_Lambda([this]() -> FText {
+					const FString PlayResetButtonText = _gameSession->IsRunning() ? TEXT("Stop!") : TEXT("Play!");
+					return FText::FromString(PlayResetButtonText);
+				})
 				.OnClicked_Lambda([InPlayButtonClicked]() {
 					InPlayButtonClicked();
 					return FReply::Handled();
@@ -259,9 +262,29 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 
 	TSharedPtr<SVerticalBox> GameViewBox = _makeMainGameArea();
 	TSharedPtr<SVerticalBox> SettingsBox = _makeSettingsArea([this, GameViewBox]() {
-		GameViewBox.Get()->SetVisibility(EVisibility::Visible);
-		StartGameWithCurrentSettings();
+		if (!_gameSession->IsRunning()) {
+			GameViewBox.Get()->SetVisibility(EVisibility::Visible);
+
+			_numericEntryWidth->SetEnabled(false);
+			_numericEntryHeight->SetEnabled(false);
+			_numericEntryNumberOfMines->SetEnabled(false);
+
+			StartGameWithCurrentSettings();
+			PopulateGrid();
+
+			return;
+		}
+
+		GameViewBox.Get()->SetVisibility(EVisibility::Hidden);
+
+		_numericEntryWidth->SetEnabled(true);
+		_numericEntryHeight->SetEnabled(true);
+		_numericEntryNumberOfMines->SetEnabled(true);
+
+		_gameSession->GetGameDataState()->ClearMatrixCells();
 		PopulateGrid();
+
+		_gameSession->Shutdown();
 	});
 
 	ChildSlot
