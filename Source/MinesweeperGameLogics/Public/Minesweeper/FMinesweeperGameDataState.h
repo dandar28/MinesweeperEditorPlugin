@@ -5,6 +5,7 @@
 #include "CellMatrix/ICellMatrix.h"
 
 #include "Minesweeper/FMinesweeperCell.h"
+#include "Minesweeper/FMinesweeperCellCoordinate.h"
 
 using FMinesweeperMatrix = TSharedPtr<ICellMatrix<FMinesweeperCell>>;
 
@@ -26,7 +27,7 @@ public:
 	 * \brief - Execute a predicate function for each cell of the matrix.
 	 * param[in] InPredicate - Predicate function to be runned on each cell which takes a cell reference as input argument.
 	 */
-	void ForeachCell(const TFunction<void(FMinesweeperCell&)>& InPredicate);
+	void ForeachCell(const TFunction<void(const FMinesweeperCellCoordinate&, FMinesweeperCell&)>& InPredicate);
 
 	/**
 	 * \brief - Reveal all the cells of the matrix.
