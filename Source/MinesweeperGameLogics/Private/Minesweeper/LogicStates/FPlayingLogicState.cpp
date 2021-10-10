@@ -6,6 +6,9 @@
 #include "Minesweeper/FMinesweeperGameSession.h"
 #include "Minesweeper/FMinesweeperGameDataState.h"
 
+#include "Minesweeper/LogicStates/FGameOverLogicState.h"
+#include "Minesweeper/LogicStates/FGameWinLogicState.h"
+
 void FPlayingLogicState::FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
 	check(GameDataState.IsValid());
 
@@ -42,5 +45,10 @@ void FPlayingLogicState::SweepOnCell(const FMinesweeperCellCoordinate& InCoordin
 		// When interacting with an empty space, reveal all its adjacent empty cells recursively (until some bombs are reached in order to stop recursing).
 		auto MinesweeperMatrixNavigator = FMinesweeperMatrixNavigator(GameDataStatePinned->Matrix.ToSharedRef());
 		MinesweeperMatrixNavigator.RevealAdjacentEmptyCellsRecursively(InCoordinates);
+
+		// Win detection.
+		if (GameDataStatePinned->IsGameWon()) {
+			OwnerStateMachine.Pin()->GoToState<FGameWinLogicState>();
+		}
 	}
 }
