@@ -3,7 +3,11 @@
 #include "SlateBasics.h"
 #include "SlateExtras.h"
 
+#include "Widgets/Input/SNumericEntryBox.h"
+
 #include "Minesweeper/FMinesweeperGameSession.h"
+
+#include "TNumericSettingEntry.h"
 
 /**
  * \brief - Slate widget that renders a minesweeper game board visually and handles the
@@ -23,6 +27,11 @@ public:
 	void Construct(const FArguments& InArgs);
 
 	bool SupportsKeyboardFocus() const override;
+
+	/**
+	 * \brief - Startup the game with the current game settings chosen through the UI.
+	 */
+	void StartGameWithCurrentSettings();
 
 	/**
 	 * \brief - Populate the grid matrix visually by regenerating it from the current state of the game session.
@@ -57,6 +66,28 @@ private:
 		const FMinesweeperCellCoordinate& InCellCoordinates,
 		const FMinesweeperCell& InCell
 	);
+
+	/**
+	 * \brief - Make a setting entry for numeric type values through a description templated class and a reference to 
+	 *			the numeric entry box slate object to get in output.
+	 * \param[in] InNumericSettingEntry - Descriptor for the setting entry to be created.
+	 * \param[in] OutOwningEntryBox - Output shared pointer to the slate object of the created numeric entry box.
+	 * \return The slate object of the horizontal box of the full created setting entry.
+	 */
+	TSharedRef<SHorizontalBox> _makeNumericSettingEntry(const TNumericSettingEntry<int>& InNumericSettingEntry, TSharedPtr<SNumericEntryBox<int>>& OutOwningEntryBox);
+
+	/**
+	 * \brief - Make the whole area of the settings.
+	 * \param[in] InPlayButtonClicked - Callback for the OnClicked event of the PlayStop button.
+	 * \return The slate object of the vertical box of the full created settings area.
+	 */
+	TSharedRef<SVerticalBox> _makeSettingsArea(const TFunction<void()>& InPlayButtonClicked);
+
+	/**
+	 * \brief - Make the whole area of the game view where the game is played.
+	 * \return The slate object of the vertical box of the full created game area.
+	 */
+	TSharedRef<SVerticalBox> _makeMainGameArea();
 
 	/**
 	 * \brief - Owned game session that is running on this game board UI widget.
@@ -97,4 +128,39 @@ private:
 	 * \brief - Currently selected action index.
 	 */
 	int32 _selectedActionIndex = 0;
+
+	/**
+	 * \brief - Slate object of the numeric entry of the Width setting.
+	 */
+	TSharedPtr<SNumericEntryBox<int>> _numericEntryWidth;
+
+	/**
+	 * \brief - Slate object of the numeric entry of the Height setting.
+	 */
+	TSharedPtr<SNumericEntryBox<int>> _numericEntryHeight;
+
+	/**
+	 * \brief - Slate object of the numeric entry of the NumberOfMines setting.
+	 */
+	TSharedPtr<SNumericEntryBox<int>> _numericEntryNumberOfMines;
+
+	/**
+	 * \brief - Shared pointer to the actual instance of the game settings updated from the UI.
+	 */
+	TSharedPtr<FMinesweeperGameSettings> _gameSettings;
+	
+	/**
+	 * \brief - Enum containing the available difficulty levels settable for the game.
+	 */
+	enum EDifficultyLevel {
+		Beginner,
+		Intermediate,
+		Expert,
+		Custom
+	};
+
+	/**
+	 * \brief - Map that binds each difficulty level to a different default setting instance.
+	 */
+	TMap<EDifficultyLevel, FMinesweeperGameSettings> _difficultyLevelsSettings;
 };
