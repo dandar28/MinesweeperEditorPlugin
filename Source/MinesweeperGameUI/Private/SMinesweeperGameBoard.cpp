@@ -11,6 +11,16 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	_gameSession = InArgs._GameSession;
 	check(_gameSession.IsValid());
 
+	// \todo : Handle this differently with predefined difficulty levels' settings.
+	if (!_gameSettings.IsSet()) {
+		FMinesweeperGameSettings DefaultGameSettings;
+		DefaultGameSettings.MatrixBoardSize.X = 9;
+		DefaultGameSettings.MatrixBoardSize.Y = 9;
+		DefaultGameSettings.NumberOfMines = 10;
+
+		_gameSettings = DefaultGameSettings;
+	}
+
 	// When the player loses the game, show a popup and update the view.
 	_gameSession->OnGameOver.AddLambda([this]() {
 		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString("You Lost!"));
