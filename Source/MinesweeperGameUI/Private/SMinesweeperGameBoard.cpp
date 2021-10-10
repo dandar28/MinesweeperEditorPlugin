@@ -76,6 +76,33 @@ TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeSettingsArea(const TFunctio
 		.AutoHeight()
 		.Padding(LateralPadding, 0.0f, LateralPadding, LateralPadding)
 		[
+			SAssignNew(_difficultyComboBox, SComboBox<TSharedPtr<FText>>)
+			.OptionsSource(&_difficultyComboOptions)
+			.IsEnabled(true)
+			.OnGenerateWidget_Lambda([](TSharedPtr<FText> Item)
+			{
+				return SNew(STextBlock).Text(*Item);
+			})
+			.Content()
+			[
+				SNew(STextBlock)
+				.Text_Lambda([this]() -> FText {
+					return *_difficultyComboOptions[_selectedDifficultyIndex].Get();
+				})
+			]
+			.OnSelectionChanged_Lambda([this](TSharedPtr<FText> InNewItem, ESelectInfo::Type InSelectType) {
+				const EDifficultyLevel NewDifficultyLevel = (EDifficultyLevel)_difficultyComboOptions.IndexOfByPredicate([InNewItem](TSharedPtr<FText> InElement) {
+					return InElement->ToString() == InNewItem->ToString();
+				});
+
+				_setNewDifficultyLevel(NewDifficultyLevel);
+			})
+		]
+		+ SVerticalBox::Slot()
+		.VAlign(VAlign_Fill)
+		.AutoHeight()
+		.Padding(LateralPadding, 0.0f, LateralPadding, LateralPadding)
+		[
 			SNew(SBox)
 			.WidthOverride(150)
 			.HeightOverride(40)
@@ -203,6 +230,28 @@ TSharedRef<SHorizontalBox> SMinesweeperGameBoard::_makeNumericSettingEntry(const
 		];
 }
 
+void SMinesweeperGameBoard::_setNewDifficultyLevel(EDifficultyLevel InNewDifficultyLevel) {
+	// Update custom settings with the ones that we just left.
+	const EDifficultyLevel CurrentDifficultyLevel = (EDifficultyLevel)_selectedDifficultyIndex;
+	if (CurrentDifficultyLevel == EDifficultyLevel::Custom) {
+		_difficultyLevelsSettings[EDifficultyLevel::Custom] = (*_gameSettings);
+	}
+
+	// Update the index with the new selected one.
+	_selectedDifficultyIndex = (int)InNewDifficultyLevel;
+
+	// Update the game settings with the ones of the selected difficulty level.
+	const EDifficultyLevel NewDifficultyLevel = (EDifficultyLevel)_selectedDifficultyIndex;
+	const FMinesweeperGameSettings& PredefinedGameSettings = _difficultyLevelsSettings[NewDifficultyLevel];
+	(*_gameSettings) = PredefinedGameSettings;
+
+	// Enable settings widgets only when we are in Custom difficulty mode.
+	const bool bIsNewDifficultyCustom = NewDifficultyLevel == EDifficultyLevel::Custom;
+	_numericEntryWidth->SetEnabled(bIsNewDifficultyCustom);
+	_numericEntryHeight->SetEnabled(bIsNewDifficultyCustom);
+	_numericEntryNumberOfMines->SetEnabled(bIsNewDifficultyCustom);
+}
+
 void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	bCanSupportFocus = true;
 
@@ -210,7 +259,7 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	_gameSession = InArgs._GameSession;
 	check(_gameSession.IsValid());
 
-	// Populate all difficulty levels' settings
+	// Populate all difficulty levels' settings.
 	{
 		_difficultyLevelsSettings.Add(EDifficultyLevel::Beginner, ([]() -> FMinesweeperGameSettings {
 			FMinesweeperGameSettings EasyGameSettings;
@@ -242,8 +291,7 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	}
 
 	if (!_gameSettings.IsValid()) {
-		FMinesweeperGameSettings DefaultGameSettings = _difficultyLevelsSettings[EDifficultyLevel::Beginner];
-		_gameSettings = MakeShared<FMinesweeperGameSettings>(DefaultGameSettings);
+		_gameSettings = MakeShared<FMinesweeperGameSettings>();
 	}
 
 	// When the player loses the game, show a popup and update the view.
@@ -271,6 +319,7 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 			_numericEntryWidth->SetEnabled(false);
 			_numericEntryHeight->SetEnabled(false);
 			_numericEntryNumberOfMines->SetEnabled(false);
+			_difficultyComboBox->SetEnabled(false);
 
 			// Start the game session with the chosen UI settings.
 			StartGameWithCurrentSettings();
@@ -286,10 +335,15 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 			// Hide the game view since it is not needed until we decide to play the game again.
 			GameViewBox.Get()->SetVisibility(EVisibility::Hidden);
 
+			// Retrieve current difficulty level because enabling the other settings depends on whether we are in Custom difficulty mode or not.
+			const EDifficultyLevel CurrentDifficultyLevel = (EDifficultyLevel)_selectedDifficultyIndex;
+			const bool bIsCurrentDifficultyCustom = CurrentDifficultyLevel == EDifficultyLevel::Custom;
+
 			// Enable all the setting entries for being able to setup a new game session.
-			_numericEntryWidth->SetEnabled(true);
-			_numericEntryHeight->SetEnabled(true);
-			_numericEntryNumberOfMines->SetEnabled(true);
+			_numericEntryWidth->SetEnabled(bIsCurrentDifficultyCustom);
+			_numericEntryHeight->SetEnabled(bIsCurrentDifficultyCustom);
+			_numericEntryNumberOfMines->SetEnabled(bIsCurrentDifficultyCustom);
+			_difficultyComboBox->SetEnabled(true);
 
 			// Clear the matrix cells of the current game session and update the view to clear it.
 			_gameSession->GetGameDataState()->ClearMatrixCells();
@@ -321,6 +375,8 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 
 	// The game view box is invisible until the Play button is hit.
 	GameViewBox->SetVisibility(EVisibility::Hidden);
+
+	_setNewDifficultyLevel(EDifficultyLevel::Beginner);
 
 	// Update the grid view.
 	if (_gameSession->IsRunning()) {
