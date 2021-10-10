@@ -14,6 +14,12 @@ FMinesweeperGameSession::~FMinesweeperGameSession() {
 }
 
 void FMinesweeperGameSession::Startup() {
+	check(!IsRunning());
+
+	if (IsRunning()) {
+		return;
+	}
+
 	_bIsRunning = true;
 	_gameDataState = MakeShared<FMinesweeperGameDataState>();
 

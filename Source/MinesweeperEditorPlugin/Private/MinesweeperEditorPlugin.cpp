@@ -50,17 +50,8 @@ void FMinesweeperEditorPluginModule::ShutdownModule()
 
 void FMinesweeperEditorPluginModule::PluginButtonClicked()
 {
-	// Prepare the game settings
-	// \warning : Magic numbers here, to be removed.
-	FMinesweeperGameSettings GameSettings;
-	GameSettings.MatrixBoardSize.X = 9;
-	GameSettings.MatrixBoardSize.Y = 9;
-	GameSettings.NumberOfMines = 10;
-
 	// Create the game session, start it up, prepare the game with the settings and start the game.
 	const auto GameSession = MakeShared<FMinesweeperGameSession>();
-	GameSession->Startup();
-	GameSession->PrepareAndStartGame(GameSettings);
 
 	// Create the target window with the Minesweeper Game Board for the started Game Session.
 	TSharedRef<SWindow> MinesweeperGameWindow = SNew(SWindow)
