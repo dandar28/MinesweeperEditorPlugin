@@ -15,8 +15,9 @@ public class MinesweeperGameUI : ModuleRules
 				"Slate",
 				"SlateCore",
 				"EditorStyle",
-				"MinesweeperGameLogics"
-			}
+                "Projects",
+                "MinesweeperGameLogics"
+            }
 		);
 	}
 }
