@@ -2,6 +2,8 @@
 
 #include "Widgets/Layout/SScaleBox.h"
 
+#include "MinesweeperGameUIStyle.h"
+
 #include "Minesweeper/FMinesweeperMatrixNavigator.h"
 
 TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeSettingsArea(const TFunction<void()>& InPlayButtonClicked) {
@@ -441,60 +443,151 @@ FText SMinesweeperGameBoard::GetSelectedActionOption() const {
 	return *_actionComboOptions[_selectedActionIndex].Get();
 }
 
+FCellStyle SMinesweeperGameBoard::_getEmptyCellStyle(const FMinesweeperCellCoordinate& InCellCoordinates) const {
+	check(_gameSession.IsValid());
+
+	const auto Matrix = _gameSession->GetGameDataState()->Matrix;
+
+	ensure(_emptyCellStylePerBombsAdjacencyCount.Num() == 9);
+
+	const int CountOfAdjacentBombs = FMinesweeperMatrixNavigator(Matrix.ToSharedRef()).CountAdjacentBombs(InCellCoordinates);
+	FCellStyle OutStyle = _emptyCellStylePerBombsAdjacencyCount[CountOfAdjacentBombs];
+	if (CountOfAdjacentBombs > 0) {
+		OutStyle.SetText(FString::FromInt(CountOfAdjacentBombs));
+	}
+
+	return OutStyle;
+}
+
+FLinearColor SMinesweeperGameBoard::_emptyCellColorIntensityDark = FLinearColor(FColor::Cyan) * 0.5;
+FLinearColor SMinesweeperGameBoard::_emptyCellColorIntensityLight = FLinearColor(FColor::Cyan) * 0.8;
+
+TArray<FCellStyle> SMinesweeperGameBoard::_emptyCellStylePerBombsAdjacencyCount = TArray<FCellStyle>{
+	FCellStyle()
+		.SetBackgroundColor(_emptyCellColorIntensityDark)
+		.SetTextColor(FLinearColor::White),
+
+	FCellStyle()
+		.SetBackgroundColor(_emptyCellColorIntensityLight)
+		.SetTextColor(FLinearColor::Blue),
+
+	FCellStyle()
+		.SetBackgroundColor(_emptyCellColorIntensityLight)
+		.SetTextColor(FLinearColor::Green),
+
+	FCellStyle()
+		.SetBackgroundColor(_emptyCellColorIntensityLight)
+		.SetTextColor(FLinearColor::Red),
+
+	FCellStyle()
+		.SetBackgroundColor(_emptyCellColorIntensityLight)
+		.SetTextColor(FLinearColor::Red),
+
+	FCellStyle()
+		.SetBackgroundColor(_emptyCellColorIntensityLight)
+		.SetTextColor(FLinearColor::Red),
+
+	FCellStyle()
+		.SetBackgroundColor(_emptyCellColorIntensityLight)
+		.SetTextColor(FLinearColor::Red),
+
+	FCellStyle()
+		.SetBackgroundColor(_emptyCellColorIntensityLight)
+		.SetTextColor(FLinearColor::Red),
+
+	FCellStyle()
+		.SetBackgroundColor(_emptyCellColorIntensityLight)
+		.SetTextColor(FLinearColor::Red)
+};
+
+FCellStyle SMinesweeperGameBoard::_hiddenCellStyle = FCellStyle()
+	.SetBackgroundColor(FLinearColor::White)
+	.SetText("");
+
+FCellStyle SMinesweeperGameBoard::_bombCellStyle = FCellStyle()
+	.SetBackgroundColor(FLinearColor::Red)
+	.SetTextColor(FLinearColor::White)
+	.SetText("Bomb");
+
+FCellStyle SMinesweeperGameBoard::_flagCellStyle = FCellStyle()
+	.SetBackgroundColor(FLinearColor::Yellow)
+	.SetTextColor(FLinearColor::White)
+	.SetText("Flag");
+
+FCellStyle SMinesweeperGameBoard::_questionMarkCellStyle = FCellStyle()
+	.SetBackgroundColor(FLinearColor(FColor::Cyan))
+	.SetTextColor(FLinearColor::White)
+	.SetText("?");
+
 TSharedRef<SWidget> SMinesweeperGameBoard::_makeWidgetForCell(const FMinesweeperCellCoordinate& InCellCoordinates, const FMinesweeperCell& InCell) {
 	check(_gameSession.IsValid());
 
 	const auto Matrix = _gameSession->GetGameDataState()->Matrix;
 
-	FLinearColor CurrentCellColor = FLinearColor::White;
-	FString CurrentCellText = "?";
-
-	int CountOfAdjacentBombs = 0;
+	FCellStyle CurrentCellStyle = _hiddenCellStyle;
 
 	if (InCell.IsRevealed()) {
 		switch (InCell.CellState) {
 		case EMinesweeperCellState::Empty:
-			CurrentCellText = "";
+			CurrentCellStyle = _getEmptyCellStyle(InCellCoordinates);
+			CurrentCellStyle.SetContentWidget(
+				SNew(STextBlock)
+					.Text(FText::FromString(CurrentCellStyle.Text))
+					.ColorAndOpacity(CurrentCellStyle.TextColor)
+					.Justification(ETextJustify::Center)
+					.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.NumberOfMineStyle")).Font)
+			);
 
-			CountOfAdjacentBombs = FMinesweeperMatrixNavigator(Matrix.ToSharedRef()).CountAdjacentBombs(InCellCoordinates);
-			if (CountOfAdjacentBombs > 0) {
-				CurrentCellText = FString::FromInt(CountOfAdjacentBombs);
-			}
-
-			switch (CountOfAdjacentBombs) {
-			case 0:
-				CurrentCellColor = FLinearColor(0.4, 0.4, 0.4);
-				break;
-			case 1:
-				CurrentCellColor = FLinearColor::Blue;
-				break;
-			case 2:
-				CurrentCellColor = FLinearColor::Green;
-				break;
-			case 3:
-			default:
-				CurrentCellColor = FLinearColor::Red;
-				break;
-			}
 			break;
 		case EMinesweeperCellState::Bomb:
-			CurrentCellText = "BOMB";
+			CurrentCellStyle = _bombCellStyle;
+			CurrentCellStyle.SetContentWidget(
+				SNew(SImage)
+				.Image(FMinesweeperGameUIStyle::Get().GetBrush("MinesweeperGameUI.Bomb"))
+			);
+
 			break;
 		}
-	}
-	else if (InCell.IsFlagged()) {
-		CurrentCellColor = FLinearColor::Yellow;
-		CurrentCellText = "FLAG";
+	} else if (InCell.IsFlagged()) {
+		CurrentCellStyle = _flagCellStyle;
+		CurrentCellStyle.SetContentWidget(
+			SNew(SImage)
+			.Image(FMinesweeperGameUIStyle::Get().GetBrush("MinesweeperGameUI.Flag"))
+		);
 	}
 
-	return 
-		SNew(SButton)
+	return
+		SNew(SBox)
 		.HAlign(HAlign_Fill)
 		.VAlign(VAlign_Fill)
-		.Text(FText::FromString(CurrentCellText))
-		.ButtonColorAndOpacity(CurrentCellColor)
-		.OnClicked_Lambda([this, InCellCoordinates]() {
-			RunAction(InCellCoordinates);
-			return FReply::Handled();
-		});
+		.WidthOverride(40)
+		.HeightOverride(40)
+		.MinDesiredWidth(40)
+		.MinDesiredHeight(40)
+		.MaxDesiredWidth(40)
+		.MaxDesiredHeight(40)
+		.MaxAspectRatio(1)
+		.MinAspectRatio(1)
+		.Content()
+		[
+			SNew(SButton)
+			.HAlign(HAlign_Fill)
+			.VAlign(VAlign_Fill)
+			.ButtonColorAndOpacity(CurrentCellStyle.BackgroundColor)
+			.OnClicked_Lambda([this, InCellCoordinates]() {
+				RunAction(InCellCoordinates);
+				return FReply::Handled();
+			})
+			.Content()
+			[
+				SNew(SScaleBox)
+				.StretchDirection(EStretchDirection::Both)
+				.Stretch(EStretch::ScaleToFit)
+				.HAlign(EHorizontalAlignment::HAlign_Fill)
+				.VAlign(EVerticalAlignment::VAlign_Center)
+				[
+					CurrentCellStyle.ContentWidget.IsValid() ? CurrentCellStyle.ContentWidget.ToSharedRef() : SNew(SBox)
+				]
+			]
+		];
 }

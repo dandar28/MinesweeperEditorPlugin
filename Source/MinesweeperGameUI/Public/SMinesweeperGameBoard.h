@@ -20,6 +20,33 @@ enum EDifficultyLevel {
 };
 
 /**
+ * \brief - Structure which represent the style data for a cell.
+ */
+struct FCellStyle {
+	FCellStyle& SetTextColor(const FLinearColor& InColor) {
+		TextColor = InColor;
+		return *this;
+	}
+	FCellStyle& SetBackgroundColor(const FLinearColor& InColor) {
+		BackgroundColor = InColor;
+		return *this;
+	}
+	FCellStyle& SetText(const FString& InText) {
+		Text = InText;
+		return *this;
+	}
+	FCellStyle& SetContentWidget(const TSharedPtr<SWidget> InWidget) {
+		ContentWidget = InWidget;
+		return *this;
+	}
+
+	TSharedPtr<SWidget> ContentWidget;
+	FLinearColor TextColor = FLinearColor::Black;
+	FLinearColor BackgroundColor = FLinearColor::White;
+	FString Text;
+};
+
+/**
  * \brief - Slate widget that renders a minesweeper game board visually and handles the
  *			game logic bindings with the UI updates through an instanced game session.
  */
@@ -65,6 +92,17 @@ public:
 	FText GetSelectedActionOption() const;
 
 private:
+
+	FCellStyle _getEmptyCellStyle(const FMinesweeperCellCoordinate& InCellCoordinates) const;
+
+	static TArray<FCellStyle> _emptyCellStylePerBombsAdjacencyCount;
+	static FCellStyle _hiddenCellStyle;
+	static FCellStyle _bombCellStyle;
+	static FCellStyle _flagCellStyle;
+	static FCellStyle _questionMarkCellStyle;
+
+	static FLinearColor _emptyCellColorIntensityDark;
+	static FLinearColor _emptyCellColorIntensityLight;
 	
 	/**
 	 * \brief - Make the widget representing the visual appearence for a cell.
