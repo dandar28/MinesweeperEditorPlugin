@@ -133,40 +133,66 @@ TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeMainGameArea() {
 		[
 			SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.HAlign(HAlign_Right)
+			.FillWidth(1.f)
+			.HAlign(HAlign_Fill)
 			.VAlign(VAlign_Center)
 			.Padding(0.0f)
 			[
 				SNew(STextBlock)
-				.Text(FText::FromString(TEXT("Current Action")))
-				.Justification(ETextJustify::Type::Left)
+				.Text_Lambda([this]() { 
+					if (!_gameSession->IsRunning()) {
+						return FText::FromString(TEXT("Timer"));
+					}
+
+					const auto GameDataState = _gameSession->GetGameDataState();
+					return  FText::FromString(GameDataState->TickTimer.GetTimeElapsedFromStart().ToString());
+				})
+				.Justification(ETextJustify::Type::Center)
 				.MinDesiredWidth(60)
 			]
 			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.HAlign(HAlign_Right)
+			.FillWidth(1.f)
+			.HAlign(HAlign_Fill)
 			.VAlign(VAlign_Center)
 			.Padding(0.0f)
 			[
-				SNew(SBox)
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.HAlign(HAlign_Right)
 				.VAlign(VAlign_Center)
-				.HAlign(HAlign_Fill)
-				.HeightOverride(21)
+				.Padding(0.0f)
 				[
-					SNew(SComboBox<TSharedPtr<FText>>)
-					.OptionsSource(&_actionComboOptions)
-					.IsEnabled(true)
-					.OnGenerateWidget_Lambda([](TSharedPtr<FText> Item)
-					{
-						return SNew(STextBlock).Text(*Item);
-					})
-					.Content()
+					SNew(STextBlock)
+					.Text(FText::FromString(TEXT("Current Action")))
+					.Justification(ETextJustify::Type::Left)
+					.MinDesiredWidth(60)
+				]
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.HAlign(HAlign_Right)
+				.VAlign(VAlign_Center)
+				.Padding(0.0f)
+				[
+					SNew(SBox)
+					.VAlign(VAlign_Center)
+					.HAlign(HAlign_Fill)
+					.HeightOverride(21)
 					[
-						SNew(STextBlock)
-						.Text(this, &SMinesweeperGameBoard::GetSelectedActionOption)
+						SNew(SComboBox<TSharedPtr<FText>>)
+						.OptionsSource(&_actionComboOptions)
+						.IsEnabled(true)
+						.OnGenerateWidget_Lambda([](TSharedPtr<FText> Item)
+						{
+							return SNew(STextBlock).Text(*Item);
+						})
+						.Content()
+						[
+							SNew(STextBlock)
+							.Text(this, &SMinesweeperGameBoard::GetSelectedActionOption)
+						]
+						.OnSelectionChanged(this, &SMinesweeperGameBoard::OnSelectedActionChanged)
 					]
-					.OnSelectionChanged(this, &SMinesweeperGameBoard::OnSelectedActionChanged)
 				]
 			]
 		]
