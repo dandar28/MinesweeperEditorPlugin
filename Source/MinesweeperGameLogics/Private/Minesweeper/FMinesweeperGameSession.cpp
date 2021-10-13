@@ -75,3 +75,7 @@ void FMinesweeperGameSession::SweepOnCell(const FMinesweeperCellCoordinate& InCo
 	auto CurrentLogicState = _gameLogicStateMachine->GetGameLogicStateAs<IMinesweeperGameLogicState>();
 	CurrentLogicState->SweepOnCell(InCoordinates);
 }
+
+TSharedRef<FGameStateMachine> FMinesweeperGameSession::GetLogicStateMachine() const {
+	return _gameLogicStateMachine;
+}

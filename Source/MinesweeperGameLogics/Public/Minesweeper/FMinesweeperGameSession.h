@@ -73,6 +73,11 @@ public:
 	void SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates);
 
 	/**
+	 * \return The logic state machine of this game session.
+	 */
+	TSharedRef<FGameStateMachine> GetLogicStateMachine() const;
+
+	/**
 	 * \brief - Event delegate that is triggered whenever the player hits the game over on this game session.
 	 */
 	FOnGameOver OnGameOver;
