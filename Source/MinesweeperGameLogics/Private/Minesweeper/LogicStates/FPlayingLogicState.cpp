@@ -9,48 +9,16 @@
 #include "Minesweeper/LogicStates/FGameOverLogicState.h"
 #include "Minesweeper/LogicStates/FGameWinLogicState.h"
 
+#include "Minesweeper/FMinesweeperActions.h"
+
 void FPlayingLogicState::FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
-	check(GameDataState.IsValid());
-
-	auto GameDataStatePinned = GameDataState.Pin();
-	check(GameDataStatePinned->Matrix->Has(InCoordinates));
-
-	// Toggle the flag on the target cell.
-	FMinesweeperCell& Cell = GameDataStatePinned->Matrix->Get(InCoordinates);
-	Cell.SetFlagged(!Cell.IsFlagged());
+	check(GameSession.IsValid());
+	FMinesweeperActions::Flag->Perform(GameSession.Pin().ToSharedRef(), InCoordinates);
 }
 
 void FPlayingLogicState::SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
-	check(GameDataState.IsValid());
-
-	auto GameDataStatePinned = GameDataState.Pin();
-	check(GameDataStatePinned->Matrix->Has(InCoordinates));
-
-	FMinesweeperCell& Cell = GameDataStatePinned->Matrix->Get(InCoordinates);
-
-	if (Cell.IsRevealed()) {
-		// If the cell is already revealed, do nothing.
-		return;
-	}
-
-	// Reveal the target cell.
-	Cell.SetRevealed(true);
-
-	switch (Cell.CellState) {
-	case EMinesweeperCellState::Bomb:
-		// When interacting with a bomb, transit to game over.
-		OwnerStateMachine.Pin()->GoToState<FGameOverLogicState>();
-		break;
-	case EMinesweeperCellState::Empty:
-		// When interacting with an empty space, reveal all its adjacent empty cells recursively (until some bombs are reached in order to stop recursing).
-		auto MinesweeperMatrixNavigator = FMinesweeperMatrixNavigator(GameDataStatePinned->Matrix.ToSharedRef());
-		MinesweeperMatrixNavigator.RevealAdjacentEmptyCellsRecursively(InCoordinates);
-
-		// Win detection.
-		if (GameDataStatePinned->IsGameWon()) {
-			OwnerStateMachine.Pin()->GoToState<FGameWinLogicState>();
-		}
-	}
+	check(GameSession.IsValid());
+	FMinesweeperActions::Sweep->Perform(GameSession.Pin().ToSharedRef(), InCoordinates);
 }
 
 void FPlayingLogicState::OnEnter() {
