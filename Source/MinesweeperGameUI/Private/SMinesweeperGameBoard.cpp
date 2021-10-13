@@ -138,17 +138,25 @@ TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeMainGameArea() {
 			.VAlign(VAlign_Center)
 			.Padding(0.0f)
 			[
-				SNew(STextBlock)
-				.Text_Lambda([this]() { 
-					if (!_gameSession->IsRunning()) {
-						return FText::FromString(TEXT("Timer"));
-					}
+				SNew(SBox)
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Fill)
+				.Content()
+				[
+					SNew(STextBlock)
+					.Justification(ETextJustify::Type::Left)
+					.MinDesiredWidth(60)
+					.ColorAndOpacity(FColor::Red)
+					.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.TimerDisplayStyle")).Font)
+					.Text_Lambda([this]() { 
+						if (!_gameSession->IsRunning()) {
+							return FText::FromString(TEXT("Timer"));
+						}
 
-					const auto GameDataState = _gameSession->GetGameDataState();
-					return  FText::FromString(GameDataState->TickTimer.GetTimeElapsedFromStart().ToString());
-				})
-				.Justification(ETextJustify::Type::Center)
-				.MinDesiredWidth(60)
+						const auto GameDataState = _gameSession->GetGameDataState();
+						return  FText::FromString(GameDataState->TickTimer.GetTimeElapsedFromStart().ToString());
+					})
+				]
 			]
 			+ SHorizontalBox::Slot()
 			.FillWidth(1.f)
