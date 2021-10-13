@@ -52,3 +52,15 @@ void FPlayingLogicState::SweepOnCell(const FMinesweeperCellCoordinate& InCoordin
 		}
 	}
 }
+
+void FPlayingLogicState::OnEnter() {
+	check(GameDataState.IsValid());
+
+	GameDataState.Pin()->TickTimer.StartTimer();
+}
+
+void FPlayingLogicState::OnExit() {
+	check(GameDataState.IsValid());
+
+	GameDataState.Pin()->TickTimer.StopTimer();
+}
