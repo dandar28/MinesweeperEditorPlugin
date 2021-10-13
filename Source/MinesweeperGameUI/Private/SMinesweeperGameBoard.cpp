@@ -402,7 +402,8 @@ void SMinesweeperGameBoard::StartGameWithCurrentSettings() {
 	check(_gameSettings.IsValid());
 
 	_gameSession->Startup();
-	_gameSession->PrepareAndStartGame(*_gameSettings);
+	_gameSession->SetSettings(*_gameSettings);
+	_gameSession->PlayGame();
 }
 
 void SMinesweeperGameBoard::PopulateGrid() {

@@ -54,9 +54,15 @@ void FPlayingLogicState::SweepOnCell(const FMinesweeperCellCoordinate& InCoordin
 }
 
 void FPlayingLogicState::OnEnter() {
+	check(GameSession.IsValid());
 	check(GameDataState.IsValid());
 
-	GameDataState.Pin()->TickTimer.StartTimer();
+	auto GameSettings = GameSession.Pin()->GetSettings();
+	auto GameDataStatePinned = GameDataState.Pin();
+
+	GameDataStatePinned->RebuildMatrix(GameSettings.MatrixBoardSize.X, GameSettings.MatrixBoardSize.Y);
+	GameDataStatePinned->ClearAndPlaceRandomMines(GameSettings.NumberOfMines);
+	GameDataStatePinned->TickTimer.StartTimer();
 }
 
 void FPlayingLogicState::OnExit() {

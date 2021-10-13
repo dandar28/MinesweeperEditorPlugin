@@ -45,10 +45,20 @@ public:
 	bool IsRunning() const override;
 
 	/**
-	 * \brief - Prepare this game session through some settings after starting up the session.
+	 * \brief - Prepare this game session's settings.
 	 * \param[in] InSettings - Settings to prepare this game session for.
 	 */
-	void PrepareAndStartGame(const FMinesweeperGameSettings& InSettings);
+	void SetSettings(const FMinesweeperGameSettings& InSettings);
+
+	/**
+	 * \return The game settings that have been set for this game session.
+	 */
+	FMinesweeperGameSettings GetSettings() const;
+
+	/**
+	 * \brief - Play the actual game with the current game settings after starting up the session.
+	 */
+	void PlayGame();
 
 	/**
 	 * \brief - Put a flag on certain cell coordinates.
@@ -77,6 +87,11 @@ private:
 	 * \brief - Boolean true when this game session is running after being started up and before being shut down.
 	 */
 	bool _bIsRunning = false;
+
+	/**
+	 * \brief - Game settings to be used when game is played.
+	 */
+	FMinesweeperGameSettings _gameSettings;
 
 	/**
 	 * \brief - Instance of the Finite State Machine of this game's logic states.

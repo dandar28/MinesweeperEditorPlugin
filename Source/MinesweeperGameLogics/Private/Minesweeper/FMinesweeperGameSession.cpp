@@ -49,10 +49,16 @@ bool FMinesweeperGameSession::IsRunning() const {
 	return _bIsRunning;
 }
 
-void FMinesweeperGameSession::PrepareAndStartGame(const FMinesweeperGameSettings& InSettings) {
+void FMinesweeperGameSession::SetSettings(const FMinesweeperGameSettings& InSettings) {
+	_gameSettings = InSettings;
+}
+
+FMinesweeperGameSettings FMinesweeperGameSession::GetSettings() const {
+	return _gameSettings;
+}
+
+void FMinesweeperGameSession::PlayGame() {
 	check(IsRunning());
-	_gameDataState->RebuildMatrix(InSettings.MatrixBoardSize.X, InSettings.MatrixBoardSize.Y);
-	_gameDataState->ClearAndPlaceRandomMines(InSettings.NumberOfMines);
 	_gameLogicStateMachine->GoToState<FPlayingLogicState>();
 }
 
