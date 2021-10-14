@@ -26,4 +26,7 @@ private:
 
 private:
 	TSharedPtr<class FUICommandList> PluginCommands;
+
+	TWeakPtr<class FMinesweeperGameSession> _gameSession;
+	TSharedPtr<SWindow> _gameWindow;
 };
