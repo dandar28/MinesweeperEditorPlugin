@@ -154,7 +154,7 @@ TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeMainGameArea() {
 						}
 
 						const auto GameDataState = _gameSession->GetGameDataState();
-						return  FText::FromString(GameDataState->TickTimer.GetTimeElapsedFromStart().ToString());
+						return  FText::FromString(GameDataState->TickTimer.GetTimeElapsedFromStart().ToString(TEXT("%m:%s")));
 					})
 				]
 			]
