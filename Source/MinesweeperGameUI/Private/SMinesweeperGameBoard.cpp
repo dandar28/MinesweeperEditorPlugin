@@ -150,11 +150,25 @@ TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeMainGameArea() {
 					.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.TimerDisplayStyle")).Font)
 					.Text_Lambda([this]() { 
 						if (!_gameSession->IsRunning()) {
-							return FText::FromString(TEXT("Timer"));
+							return FText::FromString(TEXT("Count"));
 						}
 
 						const auto GameDataState = _gameSession->GetGameDataState();
-						return  FText::FromString(GameDataState->TickTimer.GetTimeElapsedFromStart().ToString(TEXT("%m:%s")));
+
+						int CountBombs = 0;
+						int CountFlagged = 0;
+
+						GameDataState->ForeachCell([&CountFlagged, &CountBombs](const FMinesweeperCellCoordinate&, FMinesweeperCell& InRefCurrentCell) {
+							if (InRefCurrentCell.IsFlagged()) {
+								CountFlagged++;
+							}
+
+							if (InRefCurrentCell.CellState == EMinesweeperCellState::Bomb) {
+								CountBombs++;
+							}
+						});
+
+						return  FText::FromString(FString::FromInt(CountBombs - CountFlagged));
 					})
 				]
 			]
@@ -201,6 +215,32 @@ TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeMainGameArea() {
 						]
 						.OnSelectionChanged(this, &SMinesweeperGameBoard::OnSelectedActionChanged)
 					]
+				]
+			]
+			+ SHorizontalBox::Slot()
+			.FillWidth(1.f)
+			.HAlign(HAlign_Fill)
+			.VAlign(VAlign_Center)
+			.Padding(0.0f)
+			[
+				SNew(SBox)
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Fill)
+				.Content()
+				[
+					SNew(STextBlock)
+					.Justification(ETextJustify::Type::Right)
+					.MinDesiredWidth(60)
+					.ColorAndOpacity(FColor::Red)
+					.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.TimerDisplayStyle")).Font)
+					.Text_Lambda([this]() { 
+						if (!_gameSession->IsRunning()) {
+							return FText::FromString(TEXT("Timer"));
+						}
+
+						const auto GameDataState = _gameSession->GetGameDataState();
+						return  FText::FromString(GameDataState->TickTimer.GetTimeElapsedFromStart().ToString(TEXT("%m:%s")));
+					})
 				]
 			]
 		]
