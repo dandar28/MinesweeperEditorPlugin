@@ -9,6 +9,9 @@ void FTickTimer::StartTimer() {
 }
 
 void FTickTimer::StopTimer() {
+	if (HasTimerBeenStopped()) {
+		return;
+	}
 	check(HasTimerBeenStarted());
 	_timeEnd = FDateTime::Now();
 }

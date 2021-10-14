@@ -206,6 +206,23 @@ TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeMainGameArea() {
 		]
 		+ SVerticalBox::Slot()
 		.VAlign(VAlign_Fill)
+		.HAlign(HAlign_Fill)
+		.AutoHeight()
+		.Padding(LateralPadding, 0.0f, LateralPadding, LateralPadding)
+		[
+			SNew(SButton)
+			.Text(FText::FromString(TEXT("Replay")))
+			.OnClicked_Lambda([this]() {
+				_executeReplay();
+				return FReply::Handled();
+			})
+			.IsEnabled_Lambda([this]() {
+				// When a game session is started up but the game is not being played but it has been stopped first.
+				return _gameSession->IsRunning() && !_bIsPlaying;
+			})
+		]
+		+ SVerticalBox::Slot()
+		.VAlign(VAlign_Fill)
 		.FillHeight(1.f)
 		.Padding(LateralPadding, 0.0f, LateralPadding, LateralPadding)
 		[
@@ -230,6 +247,103 @@ TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeMainGameArea() {
 				]
 			]
 		];
+}
+
+void SMinesweeperGameBoard::_executeReplay() {
+	// Don't enter _executeReplay() until its existing call finishes first.
+	FScopeLock lockReplay(&_mutexReplay);
+
+	check(_gameSession.IsValid());
+
+	const auto Matrix = _gameSession->GetGameDataState()->Matrix;
+	const auto ReplayActions = MakeShared<FActionHistory>(_gameSession->GetGameDataState()->ActionHistory);
+
+	if (ReplayActions->Actions.Num() == 0) {
+		// Exit when there are no actions to be replayed.
+		return;
+	}
+	
+	// Set a convenience time start of the last played game's time start, and restart the timer.
+	const auto TimeStart = _timeStart;
+	_gameSession->GetGameDataState()->TickTimer.StartTimer();
+	
+	// Set a convenience replay time start with this new played tick timer's time start.
+	const auto ReplayTimeStart = _gameSession->GetGameDataState()->TickTimer.GetTimeStart();
+
+	// Reset all cells to unrevealed, unflagged and unmarked.
+	FMinesweeperMatrixNavigator(Matrix.ToSharedRef()).ForeachCell([this](const FMinesweeperCellCoordinate& InCoordinates, FMinesweeperCell& InRefCell) {
+		InRefCell.SetRevealed(false);
+		InRefCell.SetFlagged(false);
+		InRefCell.SetQuestionMarked(false);
+	});
+
+	// Reupdated the visual grid with the initial state of the matrix.
+	PopulateGrid();
+
+	// Make a guid for this replay execution, empty existing replay executions and add this task guid to the array.
+	const auto TaskGuid = FGuid::NewGuid();
+	_replayExecutions.Empty();
+	_replayExecutions.Add(TaskGuid);
+
+	// Set the boolean for the event of stopping a previous execution of replay.
+	_bShouldStopReplay.AtomicSet(false);
+
+	// Run the executions of replay in a parallel thread in order to allow time sleeps.
+	AsyncTask(ENamedThreads::AnyThread, [this, ReplayActions, TimeStart, ReplayTimeStart, TaskGuid]() {
+		// If this execution has been cleared from the set of execution guids or we should replay as external event
+		// then we need to exit this immediately before doing anything.
+		{
+			FScopeLock lockReplay(&_mutexReplay);
+			if (!_replayExecutions.Contains(TaskGuid) || _bShouldStopReplay) {
+				return;
+			}
+		}
+
+		// Calculate the action key time by time subtraction.
+		const auto ActionKeyTime = ReplayActions->Actions[0].Time - TimeStart;
+		if (ActionKeyTime <= 0) {
+			// Skip this, something went wrong and we can't wait for this key time.
+			return;
+		}
+
+		// Wait until our current timeline tick reaches the target action key time.
+		while ((FDateTime::Now() - ReplayTimeStart) < ActionKeyTime);
+
+		// Pop from the first element for each replay action to be executed as a queue.
+		while (ReplayActions->Actions.Num() > 0) {
+			// If this execution has been cleared from the set of execution guids or we should replay as external event
+			// then we should exit this thread execution as soon as possible.
+			{
+				FScopeLock lockReplay(&_mutexReplay);
+				if (!_replayExecutions.Contains(TaskGuid) || _bShouldStopReplay) {
+					return;
+				}
+			}
+
+			// Pop the action from the first element.
+			const auto PopAction = ReplayActions->Actions[0];
+			ReplayActions->Actions.RemoveAt(0);
+
+			// Perform the next action to replay.
+			PopAction.Action->Perform(_gameSession.ToSharedRef(), PopAction.InteractedCell);
+
+			// Update the view with the result of the matrix after the replayed action with respect to the previous state.
+			PopulateGrid();
+
+			// If there are more replay actions to come...
+			if (ReplayActions->Actions.Num() > 0) {
+				// ...take the next action key time to be waited.
+				const auto CurrentActionKeyTime = ReplayActions->Actions[0].Time - TimeStart;
+
+				// Wait for the next action key time before going on with its upcoming execution.
+				while ((FDateTime::Now() - ReplayTimeStart) < CurrentActionKeyTime);
+			}
+		}
+		
+		// Stop the timer when the replay ends.
+		_gameSession->GetGameDataState()->TickTimer.StopTimer();
+	});
+
 }
 
 TSharedRef<SHorizontalBox> SMinesweeperGameBoard::_makeNumericSettingEntry(const TNumericSettingEntry<int>& InNumericSettingEntry, TSharedPtr<SNumericEntryBox<int>>& OutOwningEntryBox) {
@@ -332,6 +446,10 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 
 	// When the player wins the game, show a popup and update the view.
 	_gameSession->OnGameWin.AddLambda([this]() {
+		_bShouldStopReplay.AtomicSet(true);
+		_bIsPlaying.AtomicSet(false);
+		_gameSession->GetGameDataState()->TickTimer.StopTimer();
+
 		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString("You Won!"));
 
 		PopulateGrid();
@@ -339,6 +457,10 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 
 	// When the player loses the game, show a popup and update the view.
 	_gameSession->OnGameOver.AddLambda([this]() {
+		_bShouldStopReplay.AtomicSet(true);
+		_bIsPlaying.AtomicSet(false);
+		_gameSession->GetGameDataState()->TickTimer.StopTimer();
+
 		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString("You Lost!"));
 
 		PopulateGrid();
@@ -353,6 +475,8 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 
 	TSharedPtr<SVerticalBox> GameViewBox = _makeMainGameArea();
 	TSharedPtr<SVerticalBox> SettingsBox = _makeSettingsArea([this, GameViewBox]() {
+		_bShouldStopReplay.AtomicSet(true);
+
 		// When the game has not been started, we requested to Play the game.
 		if (!_gameSession->IsRunning()) {
 			// The game view becomes visible as long as the game is being played.
@@ -438,25 +562,34 @@ void SMinesweeperGameBoard::StartGameWithCurrentSettings() {
 	_gameSession->Startup();
 	_gameSession->SetSettings(*_gameSettings);
 	_gameSession->PlayGame();
+
+	_timeStart = _gameSession->GetGameDataState()->TickTimer.GetTimeStart();
+	_bIsPlaying.AtomicSet(true);
 }
 
 void SMinesweeperGameBoard::PopulateGrid() {
-	check(_gameSession.IsValid());
+	AsyncTask(ENamedThreads::GameThread, [this]() {
+		check(_gameSession.IsValid());
 
-	const auto Matrix = _gameSession->GetGameDataState()->Matrix;
-	const FIntPoint BoardMatrixSize = Matrix->GetSize();
+		if (!_gameSession->IsRunning()) {
+			return;
+		}
 
-	// Clear the children of the cells grid panel in order to readd all children from zero.
-	_cellsGridPanel->ClearChildren();
+		const auto Matrix = _gameSession->GetGameDataState()->Matrix;
+		const FIntPoint BoardMatrixSize = Matrix->GetSize();
 
-	// For each cell, determine the appearence of the cell and add the element as child of the cells grid panel.
-	FMinesweeperMatrixNavigator(Matrix.ToSharedRef()).ForeachCell([this](const FMinesweeperCellCoordinate& InCoordinates, FMinesweeperCell& InRefCell) {
-		int ColumnIndex = InCoordinates.X;
-		int RowIndex = InCoordinates.Y;
-		_cellsGridPanel->AddSlot(ColumnIndex, RowIndex)
-			[
-				_makeWidgetForCell(InCoordinates, InRefCell)
-			];
+		// Clear the children of the cells grid panel in order to readd all children from zero.
+		_cellsGridPanel->ClearChildren();
+
+		// For each cell, determine the appearence of the cell and add the element as child of the cells grid panel.
+		FMinesweeperMatrixNavigator(Matrix.ToSharedRef()).ForeachCell([this](const FMinesweeperCellCoordinate& InCoordinates, FMinesweeperCell& InRefCell) {
+			int ColumnIndex = InCoordinates.X;
+			int RowIndex = InCoordinates.Y;
+			_cellsGridPanel->AddSlot(ColumnIndex, RowIndex)
+				[
+					_makeWidgetForCell(InCoordinates, InRefCell)
+				];
+		});
 	});
 }
 
