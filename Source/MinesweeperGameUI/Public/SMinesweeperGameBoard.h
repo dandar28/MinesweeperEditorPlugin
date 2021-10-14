@@ -144,6 +144,11 @@ private:
 	void _setNewDifficultyLevel(EDifficultyLevel InNewDifficultyLevel);
 
 	/**
+	 * \brief - This methods shows and plays the Replay of the actions history so far.
+	 */
+	void _executeReplay();
+
+	/**
 	 * \brief - Owned game session that is running on this game board UI widget.
 	 */
 	TSharedPtr<FMinesweeperGameSession> _gameSession;
@@ -178,6 +183,26 @@ private:
 		}
 	};
 
+	/**
+	 * \brief - Last play's time start.
+	 */
+	FDateTime _timeStart;
+
+	/**
+	 * \brief - Existing replaying display executions.
+	 */
+	TSet<FGuid> _replayExecutions;
+
+	/**
+	 * \brief - Critical section for mutex access to replay method call.
+	 */
+	FCriticalSection _mutexReplay;
+
+	/**
+	 * \brief - When this is set to true, existing replaying displays are stopped.
+	 */
+	FThreadSafeBool _bShouldStopReplay = false;
+	
 	/**
 	 * \brief - Currently selected predefined difficulty level index.
 	 */

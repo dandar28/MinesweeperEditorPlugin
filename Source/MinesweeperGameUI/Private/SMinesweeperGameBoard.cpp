@@ -206,6 +206,19 @@ TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeMainGameArea() {
 		]
 		+ SVerticalBox::Slot()
 		.VAlign(VAlign_Fill)
+		.HAlign(HAlign_Fill)
+		.AutoHeight()
+		.Padding(LateralPadding, 0.0f, LateralPadding, LateralPadding)
+		[
+			SNew(SButton)
+			.Text(FText::FromString(TEXT("Replay")))
+			.OnClicked_Lambda([this]() {
+				_executeReplay();
+				return FReply::Handled();
+			})
+		]
+		+ SVerticalBox::Slot()
+		.VAlign(VAlign_Fill)
 		.FillHeight(1.f)
 		.Padding(LateralPadding, 0.0f, LateralPadding, LateralPadding)
 		[
@@ -230,6 +243,71 @@ TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeMainGameArea() {
 				]
 			]
 		];
+}
+
+void SMinesweeperGameBoard::_executeReplay() {
+	FScopeLock lockReplay(&_mutexReplay);
+
+	check(_gameSession.IsValid());
+
+	const auto Matrix = _gameSession->GetGameDataState()->Matrix;
+	const auto ReplayActions = MakeShared<FActionHistory>(_gameSession->GetGameDataState()->ActionHistory);
+
+	if (ReplayActions->Actions.Num() == 0) {
+		return;
+	}
+
+	const auto TimeStart = _timeStart;
+	_gameSession->GetGameDataState()->TickTimer.StartTimer();
+
+	FMinesweeperMatrixNavigator(Matrix.ToSharedRef()).ForeachCell([this](const FMinesweeperCellCoordinate& InCoordinates, FMinesweeperCell& InRefCell) {
+		InRefCell.SetRevealed(false);
+		InRefCell.SetFlagged(false);
+		InRefCell.SetQuestionMarked(false);
+	});
+	PopulateGrid();
+
+	const auto TaskGuid = FGuid::NewGuid();
+	_replayExecutions.Empty();
+	_replayExecutions.Add(TaskGuid);
+
+	_bShouldStopReplay.AtomicSet(false);
+
+	AsyncTask(ENamedThreads::AnyThread, [this, ReplayActions, TimeStart, TaskGuid]() {
+		{
+			FScopeLock lockReplay(&_mutexReplay);
+			if (!_replayExecutions.Contains(TaskGuid) || _bShouldStopReplay) {
+				return;
+			}
+		}
+
+		const auto TimeToSleepFirst = ReplayActions->Actions[0].Time - TimeStart;
+		if (TimeToSleepFirst <= 0) {
+			return;
+		}
+		FWindowsPlatformProcess::Sleep(((float)TimeToSleepFirst.GetFractionNano()) / 1000000000.f);
+
+		while (ReplayActions->Actions.Num() > 0) {
+			{
+				FScopeLock lockReplay(&_mutexReplay);
+				if (!_replayExecutions.Contains(TaskGuid) || _bShouldStopReplay) {
+					return;
+				}
+			}
+
+			const auto PopAction = ReplayActions->Actions[0];
+			ReplayActions->Actions.RemoveAt(0);
+			PopAction.Action->Perform(_gameSession.ToSharedRef(), PopAction.InteractedCell);
+
+			PopulateGrid();
+
+			if (ReplayActions->Actions.Num() > 0) {
+				const auto TimeToSleep = ReplayActions->Actions[0].Time - PopAction.Time;
+				FWindowsPlatformProcess::Sleep(((float)TimeToSleep.GetFractionNano()) / 1000000000.f);
+			}
+		}
+	});
+
 }
 
 TSharedRef<SHorizontalBox> SMinesweeperGameBoard::_makeNumericSettingEntry(const TNumericSettingEntry<int>& InNumericSettingEntry, TSharedPtr<SNumericEntryBox<int>>& OutOwningEntryBox) {
@@ -332,6 +410,9 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 
 	// When the player wins the game, show a popup and update the view.
 	_gameSession->OnGameWin.AddLambda([this]() {
+		_bShouldStopReplay.AtomicSet(true);
+		_gameSession->GetGameDataState()->TickTimer.StopTimer();
+
 		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString("You Won!"));
 
 		PopulateGrid();
@@ -339,6 +420,9 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 
 	// When the player loses the game, show a popup and update the view.
 	_gameSession->OnGameOver.AddLambda([this]() {
+		_bShouldStopReplay.AtomicSet(true);
+		_gameSession->GetGameDataState()->TickTimer.StopTimer();
+
 		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString("You Lost!"));
 
 		PopulateGrid();
@@ -353,6 +437,8 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 
 	TSharedPtr<SVerticalBox> GameViewBox = _makeMainGameArea();
 	TSharedPtr<SVerticalBox> SettingsBox = _makeSettingsArea([this, GameViewBox]() {
+		_bShouldStopReplay.AtomicSet(true);
+
 		// When the game has not been started, we requested to Play the game.
 		if (!_gameSession->IsRunning()) {
 			// The game view becomes visible as long as the game is being played.
@@ -438,25 +524,33 @@ void SMinesweeperGameBoard::StartGameWithCurrentSettings() {
 	_gameSession->Startup();
 	_gameSession->SetSettings(*_gameSettings);
 	_gameSession->PlayGame();
+
+	_timeStart = _gameSession->GetGameDataState()->TickTimer.GetTimeStart();
 }
 
 void SMinesweeperGameBoard::PopulateGrid() {
-	check(_gameSession.IsValid());
+	AsyncTask(ENamedThreads::GameThread, [this]() {
+		check(_gameSession.IsValid());
 
-	const auto Matrix = _gameSession->GetGameDataState()->Matrix;
-	const FIntPoint BoardMatrixSize = Matrix->GetSize();
+		if (!_gameSession->IsRunning()) {
+			return;
+		}
 
-	// Clear the children of the cells grid panel in order to readd all children from zero.
-	_cellsGridPanel->ClearChildren();
+		const auto Matrix = _gameSession->GetGameDataState()->Matrix;
+		const FIntPoint BoardMatrixSize = Matrix->GetSize();
 
-	// For each cell, determine the appearence of the cell and add the element as child of the cells grid panel.
-	FMinesweeperMatrixNavigator(Matrix.ToSharedRef()).ForeachCell([this](const FMinesweeperCellCoordinate& InCoordinates, FMinesweeperCell& InRefCell) {
-		int ColumnIndex = InCoordinates.X;
-		int RowIndex = InCoordinates.Y;
-		_cellsGridPanel->AddSlot(ColumnIndex, RowIndex)
-			[
-				_makeWidgetForCell(InCoordinates, InRefCell)
-			];
+		// Clear the children of the cells grid panel in order to readd all children from zero.
+		_cellsGridPanel->ClearChildren();
+
+		// For each cell, determine the appearence of the cell and add the element as child of the cells grid panel.
+		FMinesweeperMatrixNavigator(Matrix.ToSharedRef()).ForeachCell([this](const FMinesweeperCellCoordinate& InCoordinates, FMinesweeperCell& InRefCell) {
+			int ColumnIndex = InCoordinates.X;
+			int RowIndex = InCoordinates.Y;
+			_cellsGridPanel->AddSlot(ColumnIndex, RowIndex)
+				[
+					_makeWidgetForCell(InCoordinates, InRefCell)
+				];
+		});
 	});
 }
 
