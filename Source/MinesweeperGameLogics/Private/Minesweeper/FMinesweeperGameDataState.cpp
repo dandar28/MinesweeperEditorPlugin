@@ -49,7 +49,9 @@ void FMinesweeperGameDataState::ClearAndPlaceRandomMines(int InNumberOfMines) {
 
 	// Place the mines on randomly picked free cells' coordinates.
 	for (int MineIndex = 0; MineIndex < InNumberOfMines; MineIndex++) {
-		FMinesweeperCellCoordinate PickedFreeCell = FreeCells[FMath::RandRange(0, FreeCells.Num() - 1)];
+		const int PickedIndex = FMath::RandRange(0, FreeCells.Num() - 1);
+		const FMinesweeperCellCoordinate PickedFreeCell = FreeCells[PickedIndex];
+		FreeCells.RemoveAt(PickedIndex);
 		Matrix->Get(PickedFreeCell).CellState = EMinesweeperCellState::Bomb;
 	}
 }
