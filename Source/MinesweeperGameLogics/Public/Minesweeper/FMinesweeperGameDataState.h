@@ -4,8 +4,10 @@
 
 #include "CellMatrix/ICellMatrix.h"
 
+#include "Minesweeper/FTickTimer.h"
 #include "Minesweeper/FMinesweeperCell.h"
 #include "Minesweeper/FMinesweeperCellCoordinate.h"
+#include "Minesweeper/FMinesweeperActions.h"
 
 using FMinesweeperMatrix = TSharedPtr<ICellMatrix<FMinesweeperCell>>;
 
@@ -14,7 +16,20 @@ using FMinesweeperMatrix = TSharedPtr<ICellMatrix<FMinesweeperCell>>;
  */
 class MINESWEEPERGAMELOGICS_API FMinesweeperGameDataState {
 public:
+	/**
+	 * \brief - Actual matrix of the game board.
+	 */
 	FMinesweeperMatrix Matrix;
+
+	/**
+	 * \brief - Timer that can be started when the game starts and can be stopped when the game ends for calculating elapsed time.
+	 */
+	FTickTimer TickTimer;
+
+	/**
+	 * \brief - History of the actions done by the player while playing, in order to be able to replay them after the game ended.
+	 */
+	FActionHistory ActionHistory;
 
 	/**
 	 * \brief - Rebuild the matrix instance with a new size and clear all cells to default cell instance state.

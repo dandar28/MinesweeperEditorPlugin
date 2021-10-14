@@ -48,6 +48,13 @@ TSharedRef< FSlateStyleSet > FMinesweeperGameUIStyle::Create()
 			.SetFontSize(40)
 	);
 
+	Style->Set(
+		"MinesweeperGameUI.TimerDisplayStyle",
+		FTextBlockStyle(FTextBlockStyle::GetDefault())
+		.SetFont(TTF_FONT("Let's go Digital Regular", 40))
+		.SetFontSize(40)
+	);	
+
 	const FVector2D Icon40x40(40.0f, 40.0f);
 	Style->Set("MinesweeperGameUI.Bomb", new IMAGE_BRUSH(TEXT("clanbomber"), Icon40x40));
 	Style->Set("MinesweeperGameUI.Flag", new IMAGE_BRUSH(TEXT("red-flag"), Icon40x40));

@@ -133,40 +133,74 @@ TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeMainGameArea() {
 		[
 			SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.HAlign(HAlign_Right)
-			.VAlign(VAlign_Center)
-			.Padding(0.0f)
-			[
-				SNew(STextBlock)
-				.Text(FText::FromString(TEXT("Current Action")))
-				.Justification(ETextJustify::Type::Left)
-				.MinDesiredWidth(60)
-			]
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.HAlign(HAlign_Right)
+			.FillWidth(1.f)
+			.HAlign(HAlign_Fill)
 			.VAlign(VAlign_Center)
 			.Padding(0.0f)
 			[
 				SNew(SBox)
-				.VAlign(VAlign_Center)
 				.HAlign(HAlign_Fill)
-				.HeightOverride(21)
+				.VAlign(VAlign_Fill)
+				.Content()
 				[
-					SNew(SComboBox<TSharedPtr<FText>>)
-					.OptionsSource(&_actionComboOptions)
-					.IsEnabled(true)
-					.OnGenerateWidget_Lambda([](TSharedPtr<FText> Item)
-					{
-						return SNew(STextBlock).Text(*Item);
+					SNew(STextBlock)
+					.Justification(ETextJustify::Type::Left)
+					.MinDesiredWidth(60)
+					.ColorAndOpacity(FColor::Red)
+					.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.TimerDisplayStyle")).Font)
+					.Text_Lambda([this]() { 
+						if (!_gameSession->IsRunning()) {
+							return FText::FromString(TEXT("Timer"));
+						}
+
+						const auto GameDataState = _gameSession->GetGameDataState();
+						return  FText::FromString(GameDataState->TickTimer.GetTimeElapsedFromStart().ToString(TEXT("%m:%s")));
 					})
-					.Content()
+				]
+			]
+			+ SHorizontalBox::Slot()
+			.FillWidth(1.f)
+			.HAlign(HAlign_Fill)
+			.VAlign(VAlign_Center)
+			.Padding(0.0f)
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.HAlign(HAlign_Right)
+				.VAlign(VAlign_Center)
+				.Padding(0.0f)
+				[
+					SNew(STextBlock)
+					.Text(FText::FromString(TEXT("Current Action")))
+					.Justification(ETextJustify::Type::Left)
+					.MinDesiredWidth(60)
+				]
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.HAlign(HAlign_Right)
+				.VAlign(VAlign_Center)
+				.Padding(0.0f)
+				[
+					SNew(SBox)
+					.VAlign(VAlign_Center)
+					.HAlign(HAlign_Fill)
+					.HeightOverride(21)
 					[
-						SNew(STextBlock)
-						.Text(this, &SMinesweeperGameBoard::GetSelectedActionOption)
+						SNew(SComboBox<TSharedPtr<FText>>)
+						.OptionsSource(&_actionComboOptions)
+						.IsEnabled(true)
+						.OnGenerateWidget_Lambda([](TSharedPtr<FText> Item)
+						{
+							return SNew(STextBlock).Text(*Item);
+						})
+						.Content()
+						[
+							SNew(STextBlock)
+							.Text(this, &SMinesweeperGameBoard::GetSelectedActionOption)
+						]
+						.OnSelectionChanged(this, &SMinesweeperGameBoard::OnSelectedActionChanged)
 					]
-					.OnSelectionChanged(this, &SMinesweeperGameBoard::OnSelectedActionChanged)
 				]
 			]
 		]
@@ -402,7 +436,8 @@ void SMinesweeperGameBoard::StartGameWithCurrentSettings() {
 	check(_gameSettings.IsValid());
 
 	_gameSession->Startup();
-	_gameSession->PrepareAndStartGame(*_gameSettings);
+	_gameSession->SetSettings(*_gameSettings);
+	_gameSession->PlayGame();
 }
 
 void SMinesweeperGameBoard::PopulateGrid() {
