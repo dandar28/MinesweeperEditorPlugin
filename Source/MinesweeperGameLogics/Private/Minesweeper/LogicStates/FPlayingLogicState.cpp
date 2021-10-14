@@ -12,13 +12,24 @@
 #include "Minesweeper/FMinesweeperActions.h"
 
 void FPlayingLogicState::FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
-	check(GameSession.IsValid());
-	FMinesweeperActions::Flag->Perform(GameSession.Pin().ToSharedRef(), InCoordinates);
+	_performAction(FMinesweeperActions::Flag, InCoordinates);
 }
 
 void FPlayingLogicState::SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
+	_performAction(FMinesweeperActions::Sweep, InCoordinates);
+}
+
+void FPlayingLogicState::_performAction(TSharedRef<IMinesweeperAction> InAction, const FMinesweeperCellCoordinate& InCoordinates) {
 	check(GameSession.IsValid());
-	FMinesweeperActions::Sweep->Perform(GameSession.Pin().ToSharedRef(), InCoordinates);
+	check(GameDataState.IsValid());
+
+	FRegisteredAction PerformedAction;
+	PerformedAction.Time = FDateTime::Now();
+	PerformedAction.InteractedCell = InCoordinates;
+	PerformedAction.Action = InAction;
+	PerformedAction.Action->Perform(GameSession.Pin().ToSharedRef(), InCoordinates);
+
+	GameDataState.Pin()->ActionHistory.Actions.Add(PerformedAction);
 }
 
 void FPlayingLogicState::OnEnter() {

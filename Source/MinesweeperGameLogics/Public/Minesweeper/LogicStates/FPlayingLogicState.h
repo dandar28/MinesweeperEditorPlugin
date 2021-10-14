@@ -22,4 +22,7 @@ public:
 	 * \brief - When exiting the game playing-logic, we want to stop the timer and reset the gameplay state.
 	 */
 	void OnExit() override;
+
+private:
+	void _performAction(TSharedRef<IMinesweeperAction> InAction, const FMinesweeperCellCoordinate& InCoordinates);
 };

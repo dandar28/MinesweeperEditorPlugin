@@ -28,7 +28,7 @@ struct FMinesweeperActions {
 
 struct FRegisteredAction {
 	FDateTime Time;
-	TSharedRef<IMinesweeperAction> Action;
+	TSharedPtr<IMinesweeperAction> Action;
 	FMinesweeperCellCoordinate InteractedCell;
 };
 
