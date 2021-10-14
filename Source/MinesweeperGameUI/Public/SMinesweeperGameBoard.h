@@ -184,6 +184,11 @@ private:
 	};
 
 	/**
+	 * \brief - True when a game is being played and it is not finished yet.
+	 */
+	FThreadSafeBool _bIsPlaying = false;
+
+	/**
 	 * \brief - Last play's time start.
 	 */
 	FDateTime _timeStart;

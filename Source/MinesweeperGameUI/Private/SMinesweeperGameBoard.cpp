@@ -216,6 +216,9 @@ TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeMainGameArea() {
 				_executeReplay();
 				return FReply::Handled();
 			})
+			.IsEnabled_Lambda([this]() {
+				return _gameSession->IsRunning() && !_bIsPlaying;
+			})
 		]
 		+ SVerticalBox::Slot()
 		.VAlign(VAlign_Fill)
@@ -260,6 +263,8 @@ void SMinesweeperGameBoard::_executeReplay() {
 	const auto TimeStart = _timeStart;
 	_gameSession->GetGameDataState()->TickTimer.StartTimer();
 
+	const auto ReplayTimeStart = _gameSession->GetGameDataState()->TickTimer.GetTimeStart();
+
 	FMinesweeperMatrixNavigator(Matrix.ToSharedRef()).ForeachCell([this](const FMinesweeperCellCoordinate& InCoordinates, FMinesweeperCell& InRefCell) {
 		InRefCell.SetRevealed(false);
 		InRefCell.SetFlagged(false);
@@ -273,7 +278,7 @@ void SMinesweeperGameBoard::_executeReplay() {
 
 	_bShouldStopReplay.AtomicSet(false);
 
-	AsyncTask(ENamedThreads::AnyThread, [this, ReplayActions, TimeStart, TaskGuid]() {
+	AsyncTask(ENamedThreads::AnyThread, [this, ReplayActions, TimeStart, ReplayTimeStart, TaskGuid]() {
 		{
 			FScopeLock lockReplay(&_mutexReplay);
 			if (!_replayExecutions.Contains(TaskGuid) || _bShouldStopReplay) {
@@ -281,11 +286,11 @@ void SMinesweeperGameBoard::_executeReplay() {
 			}
 		}
 
-		const auto TimeToSleepFirst = ReplayActions->Actions[0].Time - TimeStart;
-		if (TimeToSleepFirst <= 0) {
+		const auto ActionKeyTime = ReplayActions->Actions[0].Time - TimeStart;
+		if (ActionKeyTime <= 0) {
 			return;
 		}
-		FWindowsPlatformProcess::Sleep(((float)TimeToSleepFirst.GetFractionNano()) / 1000000000.f);
+		while ((FDateTime::Now() - ReplayTimeStart) < ActionKeyTime);
 
 		while (ReplayActions->Actions.Num() > 0) {
 			{
@@ -302,10 +307,12 @@ void SMinesweeperGameBoard::_executeReplay() {
 			PopulateGrid();
 
 			if (ReplayActions->Actions.Num() > 0) {
-				const auto TimeToSleep = ReplayActions->Actions[0].Time - PopAction.Time;
-				FWindowsPlatformProcess::Sleep(((float)TimeToSleep.GetFractionNano()) / 1000000000.f);
+				const auto CurrentActionKeyTime = ReplayActions->Actions[0].Time - TimeStart;
+				while ((FDateTime::Now() - ReplayTimeStart) < CurrentActionKeyTime);
 			}
 		}
+
+		_gameSession->GetGameDataState()->TickTimer.StopTimer();
 	});
 
 }
@@ -411,6 +418,7 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	// When the player wins the game, show a popup and update the view.
 	_gameSession->OnGameWin.AddLambda([this]() {
 		_bShouldStopReplay.AtomicSet(true);
+		_bIsPlaying.AtomicSet(false);
 		_gameSession->GetGameDataState()->TickTimer.StopTimer();
 
 		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString("You Won!"));
@@ -420,7 +428,7 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 
 	// When the player loses the game, show a popup and update the view.
 	_gameSession->OnGameOver.AddLambda([this]() {
-		_bShouldStopReplay.AtomicSet(true);
+		_bIsPlaying.AtomicSet(false);
 		_gameSession->GetGameDataState()->TickTimer.StopTimer();
 
 		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString("You Lost!"));
@@ -526,6 +534,7 @@ void SMinesweeperGameBoard::StartGameWithCurrentSettings() {
 	_gameSession->PlayGame();
 
 	_timeStart = _gameSession->GetGameDataState()->TickTimer.GetTimeStart();
+	_bIsPlaying.AtomicSet(true);
 }
 
 void SMinesweeperGameBoard::PopulateGrid() {
