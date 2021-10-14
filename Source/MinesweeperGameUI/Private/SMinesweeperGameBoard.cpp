@@ -217,6 +217,7 @@ TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeMainGameArea() {
 				return FReply::Handled();
 			})
 			.IsEnabled_Lambda([this]() {
+				// When a game session is started up but the game is not being played but it has been stopped first.
 				return _gameSession->IsRunning() && !_bIsPlaying;
 			})
 		]
@@ -428,6 +429,7 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 
 	// When the player loses the game, show a popup and update the view.
 	_gameSession->OnGameOver.AddLambda([this]() {
+		_bShouldStopReplay.AtomicSet(true);
 		_bIsPlaying.AtomicSet(false);
 		_gameSession->GetGameDataState()->TickTimer.StopTimer();
 
