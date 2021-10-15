@@ -50,8 +50,28 @@ void FMinesweeperEditorPluginModule::ShutdownModule()
 
 void FMinesweeperEditorPluginModule::PluginButtonClicked()
 {
+	// If an existing game window is there...
+	if (_gameWindow.IsValid()) {
+		// Toggle the minimization.
+		if (_gameWindow->IsWindowMinimized()) {
+			// If minimized, restore it.
+			_gameWindow->Restore();
+		} else {
+			// If shown, minimize.
+			_gameWindow->Minimize();
+		}
+		// Don't do anything, the game window needs to be closed before being able to recreate it.
+		return;
+	}
+
+	// If there's an existing game session, don't do anything.
+	if (_gameSession.IsValid()) {
+		return;
+	}
+
 	// Create the game session, start it up, prepare the game with the settings and start the game.
 	const auto GameSession = MakeShared<FMinesweeperGameSession>();
+	_gameSession = GameSession;
 
 	// Create the target window with the Minesweeper Game Board for the started Game Session.
 	TSharedRef<SWindow> MinesweeperGameWindow = SNew(SWindow)
@@ -71,12 +91,15 @@ void FMinesweeperEditorPluginModule::PluginButtonClicked()
 		];
 
 	// When the window is closed, shut the game session down as well.
-	MinesweeperGameWindow->GetOnWindowClosedEvent().AddLambda([GameSession](const TSharedRef<SWindow>& InClosedWindow) {
+	MinesweeperGameWindow->GetOnWindowClosedEvent().AddLambda([GameSession, this](const TSharedRef<SWindow>& InClosedWindow) {
 		GameSession->Shutdown();
+
+		_gameSession.Reset();
+		_gameWindow.Reset();
 	});
 
 	// Spawn the window and show it.
-	FSlateApplication::Get().AddWindow(MinesweeperGameWindow, true);
+	_gameWindow = FSlateApplication::Get().AddWindow(MinesweeperGameWindow, true);
 }
 
 void FMinesweeperEditorPluginModule::RegisterMenus()
