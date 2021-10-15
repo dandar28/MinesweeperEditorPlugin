@@ -50,15 +50,21 @@ void FMinesweeperEditorPluginModule::ShutdownModule()
 
 void FMinesweeperEditorPluginModule::PluginButtonClicked()
 {
+	// If an existing game window is there...
 	if (_gameWindow.IsValid()) {
+		// Toggle the minimization.
 		if (_gameWindow->IsWindowMinimized()) {
+			// If minimized, restore it.
 			_gameWindow->Restore();
 		} else {
+			// If shown, minimize.
 			_gameWindow->Minimize();
 		}
+		// Don't do anything, the game window needs to be closed before being able to recreate it.
 		return;
 	}
 
+	// If there's an existing game session, don't do anything.
 	if (_gameSession.IsValid()) {
 		return;
 	}
