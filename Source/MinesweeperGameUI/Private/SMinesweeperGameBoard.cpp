@@ -156,44 +156,31 @@ FReply SButtonClickable::ExecuteOnClick(FOnClicked& InRefDelegate)
 
 
 void SButtonClickable::Construct(const FArguments& InArgs) {
-	/**
-	* 
-		: _Content()
-		, _ButtonStyle( &FCoreStyle::Get().GetWidgetStyle< FButtonStyle >( "Button" ) )
-		, _TextStyle( &FCoreStyle::Get().GetWidgetStyle< FTextBlockStyle >("NormalText") )
-		, _HAlign( HAlign_Fill )
-		, _VAlign( VAlign_Fill )
-		, _ContentPadding(FMargin(4.0, 2.0))
-		, _Text()
-		, _ClickMethod( EButtonClickMethod::DownAndUp )
-		, _TouchMethod( EButtonTouchMethod::DownAndUp )
-		, _PressMethod( EButtonPressMethod::DownAndUp )
-		, _DesiredSizeScale( FVector2D(1,1) )
-		, _ContentScale( FVector2D(1,1) )
-		, _ButtonColorAndOpacity(FLinearColor::White)
-		, _ForegroundColor( FCoreStyle::Get().GetSlateColor( "InvertedForeground" ) )
-		, _IsFocusable( true )
-	 */
+	const auto OptionalHoveredSound = Style ? InArgs._HoveredSoundOverride.Get(Style->HoveredSlateSound) : InArgs._HoveredSoundOverride;
+	const auto OptionalPressedSound = Style ? InArgs._PressedSoundOverride.Get(Style->PressedSlateSound) : InArgs._PressedSoundOverride;
+	
 	SButton::Construct(SButton::FArguments()
-		.ContentScale(InArgs._ContentScale)
-		.ContentPadding(InArgs._ContentPadding)
-		.DesiredSizeScale(InArgs._DesiredSizeScale)
-		.ForegroundColor(InArgs._ForegroundColor)
 		.ButtonStyle(InArgs._ButtonStyle)
-		.IsFocusable(InArgs._IsFocusable)		
+		.TextStyle(InArgs._TextStyle)
+		.HAlign(InArgs._HAlign)
+		.VAlign(InArgs._VAlign)
+		.ContentPadding(InArgs._ContentPadding)
+		.Text(InArgs._Text)
+		.ClickMethod(InArgs._ClickMethod)
+		.TouchMethod(InArgs._TouchMethod)
+		.PressMethod(InArgs._PressMethod)
+		.DesiredSizeScale(InArgs._DesiredSizeScale)
+		.ContentScale(InArgs._ContentScale)
+		.ButtonColorAndOpacity(InArgs._ButtonColorAndOpacity)
+		.ForegroundColor(InArgs._ForegroundColor)
+		.IsFocusable(InArgs._IsFocusable)
 		.OnClicked(InArgs._OnClicked)
 		.OnPressed(InArgs._OnPressed)
 		.OnReleased(InArgs._OnReleased)
 		.OnHovered(InArgs._OnHovered)
 		.OnUnhovered(InArgs._OnUnhovered)
-		.ClickMethod(InArgs._ClickMethod)
-		.TouchMethod(InArgs._TouchMethod)
-		.PressMethod(InArgs._PressMethod)
-		.HoveredSoundOverride(InArgs._HoveredSoundOverride)//.Get(Style ? Style->HoveredSlateSound : TOptional<FSlateSound>{}))
-		.PressedSoundOverride(InArgs._PressedSoundOverride)//.Get(Style ? Style->PressedSlateSound : TOptional<FSlateSound>{}))
-		.HAlign(InArgs._HAlign)
-		.VAlign(InArgs._VAlign)
-		.ButtonColorAndOpacity(InArgs._ButtonColorAndOpacity)
+		.HoveredSoundOverride(OptionalHoveredSound)
+		.PressedSoundOverride(OptionalPressedSound)
 		.Content()
 		[
 			InArgs._Content.Widget
@@ -203,12 +190,6 @@ void SButtonClickable::Construct(const FArguments& InArgs) {
 	OnLeftClicked = InArgs._OnLeftClicked;
 	OnMiddleClicked = InArgs._OnMiddleClicked;
 	OnRightClicked = InArgs._OnRightClicked;
-
-	OnHovered.BindLambda([this]() {
-		// FSlateApplication::GetPressedMouseButtons()
-	});
-	OnUnhovered.BindLambda([this]() {
-	});
 }
 
 TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeSettingsArea(const TFunction<void()>& InPlayButtonClicked) {
