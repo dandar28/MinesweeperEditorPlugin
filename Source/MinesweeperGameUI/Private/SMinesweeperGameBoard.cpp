@@ -6,129 +6,139 @@
 
 #include "Minesweeper/FMinesweeperMatrixNavigator.h"
 
-/*
-SButtonClickable::SButtonClickable() {
-
+FReply SButtonClickable::_executeOnClick(FOnClicked& InRefDelegate) {
+	if (InRefDelegate.IsBound()) {
+		FReply Reply = InRefDelegate.Execute();
+#if WITH_ACCESSIBILITY
+		FSlateApplicationBase::Get().GetAccessibleMessageHandler()->OnWidgetEventRaised(AsShared(), EAccessibleEvent::Activate);
+#endif
+		return Reply;
+	}
+	else {
+		return FReply::Handled();
+	}
 }
-*/
 
-FReply SButtonClickable::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
-{
-	FReply Reply = FReply::Unhandled();
-	if (IsEnabled())
-	{
-		Press();
-		PressedScreenSpacePosition = MouseEvent.GetScreenSpacePosition();
+FReply SButtonClickable::_executeButtonClick(const FKey& InEffectingButton, bool bIsDoubleClick) {
+	FReply OutReply = FReply::Unhandled();
 
-		EButtonClickMethod::Type InputClickMethod = GetClickMethodFromInputType(MouseEvent);
+	//<<< Get the reply from the execute function
+	if (InEffectingButton == EKeys::LeftMouseButton) {
+		OutReply = _executeOnClick(bIsDoubleClick ? OnLeftDoubleClicked : OnLeftClicked);
+	} else if (InEffectingButton == EKeys::MiddleMouseButton) {
+		OutReply = _executeOnClick(bIsDoubleClick ? OnMiddleDoubleClicked : OnMiddleClicked);
+	} else if (InEffectingButton == EKeys::RightMouseButton) {
+		OutReply = _executeOnClick(bIsDoubleClick ? OnRightDoubleClicked : OnRightClicked);
+	}
+	//>>>
 
-		if (InputClickMethod == EButtonClickMethod::MouseDown)
-		{
-			//<<< Get the reply from the execute function
-			const auto EffectingButton = MouseEvent.GetEffectingButton();
-			if (EffectingButton == EKeys::LeftMouseButton) {
-				Reply = ExecuteOnClick(OnLeftClicked);
-			} else if (EffectingButton == EKeys::MiddleMouseButton) {
-				Reply = ExecuteOnClick(OnMiddleClicked);
-			} else if(EffectingButton == EKeys::RightMouseButton) {
-				Reply = ExecuteOnClick(OnRightClicked);
-			}
-			//>>>
+	return OutReply;
+}
 
-			//You should ALWAYS handle the OnClicked event.
-			ensure(Reply.IsEventHandled() == true);
-		}
-		else if (InputClickMethod == EButtonClickMethod::PreciseClick)
-		{
-			// do not capture the pointer for precise taps or clicks
-			// 
-			Reply = FReply::Handled();
-		}
-		else
-		{
-			//we need to capture the mouse for MouseUp events
-			Reply = FReply::Handled().CaptureMouse(AsShared());
-		}
+FReply SButtonClickable::_handleMouseButtonDown(const FPointerEvent& InMouseEvent, bool bIsDoubleClick) {
+	// If the button is not enabled, invalidate and reply unhandled.
+	if (!IsEnabled()) {
+		Invalidate(EInvalidateWidget::Layout);
+		return FReply::Unhandled();
 	}
 
-	Invalidate(EInvalidateWidget::Layout);
+	// Press the button.
+	Press();
 
-	//return the constructed reply
+	// Store the location where the button was pressed.
+	PressedScreenSpacePosition = InMouseEvent.GetScreenSpacePosition();
+
+	//<<< Detect how to handle the event and obtain the reply.
+	FReply Reply = FReply::Unhandled();
+	{
+		const EButtonClickMethod::Type InputClickMethod = GetClickMethodFromInputType(InMouseEvent);
+
+		switch (InputClickMethod) {
+		case EButtonClickMethod::MouseDown:
+			// Let the eventually bound delegate handle the event.
+			Reply = _executeButtonClick(InMouseEvent.GetEffectingButton(), bIsDoubleClick);
+			break;
+		case EButtonClickMethod::PreciseClick:
+			// Handle without capturing the mouse.
+			Reply = FReply::Handled();
+			break;
+		case EButtonClickMethod::MouseUp:
+		case EButtonClickMethod::DownAndUp:
+			// Handle and capture  the mouse for mouse up events.
+			Reply = FReply::Handled().CaptureMouse(AsShared());
+			break;
+		}
+	}
+	//>>>
+
+	// Ensure that the click event has been handled.
+	ensure(Reply.IsEventHandled());
+
 	return Reply;
 }
 
-FReply SButtonClickable::OnMouseButtonDoubleClick(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent)
-{
-	return OnMouseButtonDown(InMyGeometry, InMouseEvent);
-}
-
-FReply SButtonClickable::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
-{
+FReply SButtonClickable::_handleMouseButtonUp(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent) {
 	FReply Reply = FReply::Unhandled();
-	const EButtonClickMethod::Type InputClickMethod = GetClickMethodFromInputType(MouseEvent);
+	const EButtonClickMethod::Type InputClickMethod = GetClickMethodFromInputType(InMouseEvent);
+	
+	// Create a lambda for determining whether or not we should trigger this event.
+	auto ShouldTriggerEvent = [this, InputClickMethod, InMyGeometry, InMouseEvent]() -> bool {
+		// If not enabled, we skip any behaviour.
+		if (!IsEnabled()) {
+			return false;
+		}
+
+		// If the input click method is mouse down...
+		if (InputClickMethod == EButtonClickMethod::MouseDown) {
+			// ... we can skip it because we are handling mouse up event.
+			return false;
+		}
+
+		// If the input click method is precise click...
+		if (InputClickMethod == EButtonClickMethod::PreciseClick) {
+			// ... we can trigger the event if this is a touch event under location.
+			const bool bIsTouchEventOverCursor = InMouseEvent.IsTouchEvent() && InMyGeometry.IsUnderLocation(InMouseEvent.GetScreenSpacePosition());
+			if (bIsTouchEventOverCursor) {
+				return true;
+			}
+		}
+
+		// If the mouse button is hovered...
+		if (IsHovered()) {
+			// ... we want to trigger it if we are handling a mouse up event or if mouse was captured by this button.
+			const bool bTriggerForMouseEvent = InputClickMethod == EButtonClickMethod::MouseUp || HasMouseCapture();
+			if (bTriggerForMouseEvent) {
+				return true;
+			}
+		}
+
+		// If we did not detect any way to trigger the event so far, let's not trigger it.
+		return false;
+	};
+
 	const bool bMustBePressed = InputClickMethod == EButtonClickMethod::DownAndUp || InputClickMethod == EButtonClickMethod::PreciseClick;
 	const bool bMeetsPressedRequirements = (!bMustBePressed || (bIsPressed && bMustBePressed));
-
 	if (bMeetsPressedRequirements)
 	{
 		Release();
 
-		if (IsEnabled())
-		{
-			if (InputClickMethod == EButtonClickMethod::MouseDown)
-			{
-				// NOTE: If we're configured to click on mouse-down/precise-tap, then we never capture the mouse thus
-				//       may never receive an OnMouseButtonUp() call.  We make sure that our bIsPressed
-				//       state is reset by overriding OnMouseLeave().
-			}
-			else
-			{
-				bool bEventOverButton = IsHovered();
-
-				if (!bEventOverButton && MouseEvent.IsTouchEvent())
-				{
-					bEventOverButton = MyGeometry.IsUnderLocation(MouseEvent.GetScreenSpacePosition());
-				}
-
-				if (bEventOverButton)
-				{
-					// If we asked for a precise tap, all we need is for the user to have not moved their pointer very far.
-					const bool bTriggerForTouchEvent = InputClickMethod == EButtonClickMethod::PreciseClick;
-
-					// If we were asked to allow the button to be clicked on mouse up, regardless of whether the user
-					// pressed the button down first, then we'll allow the click to proceed without an active capture
-					const bool bTriggerForMouseEvent = (InputClickMethod == EButtonClickMethod::MouseUp || HasMouseCapture());
-
-					if ((bTriggerForTouchEvent || bTriggerForMouseEvent))
-					{
-						//<<< Get the reply from the execute function
-						const auto EffectingButton = MouseEvent.GetEffectingButton();
-						if (EffectingButton == EKeys::LeftMouseButton) {
-							Reply = ExecuteOnClick(OnLeftClicked);
-						}
-						else if (EffectingButton == EKeys::MiddleMouseButton) {
-							Reply = ExecuteOnClick(OnMiddleClicked);
-						}
-						else if (EffectingButton == EKeys::RightMouseButton) {
-							Reply = ExecuteOnClick(OnRightClicked);
-						}
-						//>>>
-					}
-				}
-			}
+		// If the event should be triggered for some reason, then execute the bound behaviour
+		// to handle it and store its reply.
+		if (ShouldTriggerEvent()) {
+			Reply = _executeButtonClick(InMouseEvent.GetEffectingButton(), false);
 		}
 
-		//If the user of the button didn't handle this click, then the button's
-		//default behavior handles it.
-		if (Reply.IsEventHandled() == false)
+		// If the user of the button didn't handle this click, then the button's
+		// default behavior handles it.
+		if (!Reply.IsEventHandled())
 		{
 			Reply = FReply::Handled();
 		}
 	}
 
-	//If the user hasn't requested a new mouse captor and the button still has mouse capture,
-	//then the default behavior of the button is to release mouse capture.
-	if (Reply.GetMouseCaptor().IsValid() == false && HasMouseCapture())
+	// If the user hasn't requested a new mouse captor and the button still has mouse capture,
+	// then the default behavior of the button is to release mouse capture.
+	if (!Reply.GetMouseCaptor().IsValid() && HasMouseCapture())
 	{
 		Reply.ReleaseMouseCapture();
 	}
@@ -138,22 +148,17 @@ FReply SButtonClickable::OnMouseButtonUp(const FGeometry& MyGeometry, const FPoi
 	return Reply;
 }
 
-FReply SButtonClickable::ExecuteOnClick(FOnClicked& InRefDelegate)
-{
-	if (InRefDelegate.IsBound())
-	{
-		FReply Reply = InRefDelegate.Execute();
-#if WITH_ACCESSIBILITY
-		FSlateApplicationBase::Get().GetAccessibleMessageHandler()->OnWidgetEventRaised(AsShared(), EAccessibleEvent::Activate);
-#endif
-		return Reply;
-	}
-	else
-	{
-		return FReply::Handled();
-	}
+FReply SButtonClickable::OnMouseButtonDown(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent) {
+	return _handleMouseButtonDown(InMouseEvent, false);
 }
 
+FReply SButtonClickable::OnMouseButtonDoubleClick(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent) {
+	return _handleMouseButtonDown(InMouseEvent, true);
+}
+
+FReply SButtonClickable::OnMouseButtonUp(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent) {
+	return _handleMouseButtonUp(InMyGeometry, InMouseEvent);
+}
 
 void SButtonClickable::Construct(const FArguments& InArgs) {
 	const auto OptionalHoveredSound = Style ? InArgs._HoveredSoundOverride.Get(Style->HoveredSlateSound) : InArgs._HoveredSoundOverride;

@@ -72,6 +72,10 @@ public:
 		SLATE_EVENT(FOnClicked, OnMiddleClicked)
 		SLATE_EVENT(FOnClicked, OnRightClicked)
 
+		SLATE_EVENT(FOnClicked, OnLeftDoubleClicked)
+		SLATE_EVENT(FOnClicked, OnMiddleDoubleClicked)
+		SLATE_EVENT(FOnClicked, OnRightDoubleClicked)
+
 		SLATE_DEFAULT_SLOT(FArguments, Content)
 		SLATE_STYLE_ARGUMENT(FButtonStyle, ButtonStyle)
 		SLATE_STYLE_ARGUMENT(FTextBlockStyle, TextStyle)
@@ -102,14 +106,24 @@ public:
 	FOnClicked OnMiddleClicked;
 	FOnClicked OnRightClicked;
 
+	FOnClicked OnLeftDoubleClicked;
+	FOnClicked OnMiddleDoubleClicked;
+	FOnClicked OnRightDoubleClicked;
+
 	// SButtonClickable();
 	void Construct(const FArguments& InArgs);
 
-	FReply OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	FReply OnMouseButtonDown(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent) override;
 	FReply OnMouseButtonDoubleClick(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent) override;
-	FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	FReply OnMouseButtonUp(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent) override;
 
-	FReply ExecuteOnClick(FOnClicked& InRefDelegate);
+protected:
+	virtual FReply _executeOnClick(FOnClicked& InRefDelegate);
+	virtual FReply _executeButtonClick(const FKey& InEffectingButton, bool bIsDoubleClick = false);
+
+private:
+	FReply _handleMouseButtonDown(const FPointerEvent& InMouseEvent, bool bIsDoubleClick = false);
+	FReply _handleMouseButtonUp(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent);
 };
 
 /**
