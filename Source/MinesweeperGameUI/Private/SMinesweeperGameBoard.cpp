@@ -64,8 +64,13 @@ FReply SButtonClickable::_handleMouseButtonDown(const FPointerEvent& InMouseEven
 			break;
 		case EButtonClickMethod::MouseUp:
 		case EButtonClickMethod::DownAndUp:
-			// Handle and capture  the mouse for mouse up events.
-			Reply = FReply::Handled().CaptureMouse(AsShared());
+			if (bIsDoubleClick) {
+				// Let the eventually bound delegate handle the event.
+				Reply = _executeButtonClick(InMouseEvent.GetEffectingButton(), true);
+			} else {
+				// Handle and capture the mouse for mouse up events.
+				Reply = FReply::Handled().CaptureMouse(AsShared());
+			}
 			break;
 		}
 	}
