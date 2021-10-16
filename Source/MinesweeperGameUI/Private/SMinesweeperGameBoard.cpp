@@ -6,6 +6,211 @@
 
 #include "Minesweeper/FMinesweeperMatrixNavigator.h"
 
+/*
+SButtonClickable::SButtonClickable() {
+
+}
+*/
+
+FReply SButtonClickable::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+	FReply Reply = FReply::Unhandled();
+	if (IsEnabled())
+	{
+		Press();
+		PressedScreenSpacePosition = MouseEvent.GetScreenSpacePosition();
+
+		EButtonClickMethod::Type InputClickMethod = GetClickMethodFromInputType(MouseEvent);
+
+		if (InputClickMethod == EButtonClickMethod::MouseDown)
+		{
+			//<<< Get the reply from the execute function
+			const auto EffectingButton = MouseEvent.GetEffectingButton();
+			if (EffectingButton == EKeys::LeftMouseButton) {
+				Reply = ExecuteOnClick(OnLeftClicked);
+			} else if (EffectingButton == EKeys::MiddleMouseButton) {
+				Reply = ExecuteOnClick(OnMiddleClicked);
+			} else if(EffectingButton == EKeys::RightMouseButton) {
+				Reply = ExecuteOnClick(OnRightClicked);
+			}
+			//>>>
+
+			//You should ALWAYS handle the OnClicked event.
+			ensure(Reply.IsEventHandled() == true);
+		}
+		else if (InputClickMethod == EButtonClickMethod::PreciseClick)
+		{
+			// do not capture the pointer for precise taps or clicks
+			// 
+			Reply = FReply::Handled();
+		}
+		else
+		{
+			//we need to capture the mouse for MouseUp events
+			Reply = FReply::Handled().CaptureMouse(AsShared());
+		}
+	}
+
+	Invalidate(EInvalidateWidget::Layout);
+
+	//return the constructed reply
+	return Reply;
+}
+
+FReply SButtonClickable::OnMouseButtonDoubleClick(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent)
+{
+	return OnMouseButtonDown(InMyGeometry, InMouseEvent);
+}
+
+FReply SButtonClickable::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+	FReply Reply = FReply::Unhandled();
+	const EButtonClickMethod::Type InputClickMethod = GetClickMethodFromInputType(MouseEvent);
+	const bool bMustBePressed = InputClickMethod == EButtonClickMethod::DownAndUp || InputClickMethod == EButtonClickMethod::PreciseClick;
+	const bool bMeetsPressedRequirements = (!bMustBePressed || (bIsPressed && bMustBePressed));
+
+	if (bMeetsPressedRequirements)
+	{
+		Release();
+
+		if (IsEnabled())
+		{
+			if (InputClickMethod == EButtonClickMethod::MouseDown)
+			{
+				// NOTE: If we're configured to click on mouse-down/precise-tap, then we never capture the mouse thus
+				//       may never receive an OnMouseButtonUp() call.  We make sure that our bIsPressed
+				//       state is reset by overriding OnMouseLeave().
+			}
+			else
+			{
+				bool bEventOverButton = IsHovered();
+
+				if (!bEventOverButton && MouseEvent.IsTouchEvent())
+				{
+					bEventOverButton = MyGeometry.IsUnderLocation(MouseEvent.GetScreenSpacePosition());
+				}
+
+				if (bEventOverButton)
+				{
+					// If we asked for a precise tap, all we need is for the user to have not moved their pointer very far.
+					const bool bTriggerForTouchEvent = InputClickMethod == EButtonClickMethod::PreciseClick;
+
+					// If we were asked to allow the button to be clicked on mouse up, regardless of whether the user
+					// pressed the button down first, then we'll allow the click to proceed without an active capture
+					const bool bTriggerForMouseEvent = (InputClickMethod == EButtonClickMethod::MouseUp || HasMouseCapture());
+
+					if ((bTriggerForTouchEvent || bTriggerForMouseEvent))
+					{
+						//<<< Get the reply from the execute function
+						const auto EffectingButton = MouseEvent.GetEffectingButton();
+						if (EffectingButton == EKeys::LeftMouseButton) {
+							Reply = ExecuteOnClick(OnLeftClicked);
+						}
+						else if (EffectingButton == EKeys::MiddleMouseButton) {
+							Reply = ExecuteOnClick(OnMiddleClicked);
+						}
+						else if (EffectingButton == EKeys::RightMouseButton) {
+							Reply = ExecuteOnClick(OnRightClicked);
+						}
+						//>>>
+					}
+				}
+			}
+		}
+
+		//If the user of the button didn't handle this click, then the button's
+		//default behavior handles it.
+		if (Reply.IsEventHandled() == false)
+		{
+			Reply = FReply::Handled();
+		}
+	}
+
+	//If the user hasn't requested a new mouse captor and the button still has mouse capture,
+	//then the default behavior of the button is to release mouse capture.
+	if (Reply.GetMouseCaptor().IsValid() == false && HasMouseCapture())
+	{
+		Reply.ReleaseMouseCapture();
+	}
+
+	Invalidate(EInvalidateWidget::Layout);
+
+	return Reply;
+}
+
+FReply SButtonClickable::ExecuteOnClick(FOnClicked& InRefDelegate)
+{
+	if (InRefDelegate.IsBound())
+	{
+		FReply Reply = InRefDelegate.Execute();
+#if WITH_ACCESSIBILITY
+		FSlateApplicationBase::Get().GetAccessibleMessageHandler()->OnWidgetEventRaised(AsShared(), EAccessibleEvent::Activate);
+#endif
+		return Reply;
+	}
+	else
+	{
+		return FReply::Handled();
+	}
+}
+
+
+void SButtonClickable::Construct(const FArguments& InArgs) {
+	/**
+	* 
+		: _Content()
+		, _ButtonStyle( &FCoreStyle::Get().GetWidgetStyle< FButtonStyle >( "Button" ) )
+		, _TextStyle( &FCoreStyle::Get().GetWidgetStyle< FTextBlockStyle >("NormalText") )
+		, _HAlign( HAlign_Fill )
+		, _VAlign( VAlign_Fill )
+		, _ContentPadding(FMargin(4.0, 2.0))
+		, _Text()
+		, _ClickMethod( EButtonClickMethod::DownAndUp )
+		, _TouchMethod( EButtonTouchMethod::DownAndUp )
+		, _PressMethod( EButtonPressMethod::DownAndUp )
+		, _DesiredSizeScale( FVector2D(1,1) )
+		, _ContentScale( FVector2D(1,1) )
+		, _ButtonColorAndOpacity(FLinearColor::White)
+		, _ForegroundColor( FCoreStyle::Get().GetSlateColor( "InvertedForeground" ) )
+		, _IsFocusable( true )
+	 */
+	SButton::Construct(SButton::FArguments()
+		.ContentScale(InArgs._ContentScale)
+		.ContentPadding(InArgs._ContentPadding)
+		.DesiredSizeScale(InArgs._DesiredSizeScale)
+		.ForegroundColor(InArgs._ForegroundColor)
+		.ButtonStyle(InArgs._ButtonStyle)
+		.IsFocusable(InArgs._IsFocusable)		
+		.OnClicked(InArgs._OnClicked)
+		.OnPressed(InArgs._OnPressed)
+		.OnReleased(InArgs._OnReleased)
+		.OnHovered(InArgs._OnHovered)
+		.OnUnhovered(InArgs._OnUnhovered)
+		.ClickMethod(InArgs._ClickMethod)
+		.TouchMethod(InArgs._TouchMethod)
+		.PressMethod(InArgs._PressMethod)
+		.HoveredSoundOverride(InArgs._HoveredSoundOverride)//.Get(Style ? Style->HoveredSlateSound : TOptional<FSlateSound>{}))
+		.PressedSoundOverride(InArgs._PressedSoundOverride)//.Get(Style ? Style->PressedSlateSound : TOptional<FSlateSound>{}))
+		.HAlign(InArgs._HAlign)
+		.VAlign(InArgs._VAlign)
+		.ButtonColorAndOpacity(InArgs._ButtonColorAndOpacity)
+		.Content()
+		[
+			InArgs._Content.Widget
+		]
+	);
+
+	OnLeftClicked = InArgs._OnLeftClicked;
+	OnMiddleClicked = InArgs._OnMiddleClicked;
+	OnRightClicked = InArgs._OnRightClicked;
+
+	OnHovered.BindLambda([this]() {
+		// FSlateApplication::GetPressedMouseButtons()
+	});
+	OnUnhovered.BindLambda([this]() {
+	});
+}
+
 TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeSettingsArea(const TFunction<void()>& InPlayButtonClicked) {
 	const auto BombsCountValueClamper = [this](int InValue) -> int {
 		const auto MatrixSize = _gameSettings->MatrixBoardSize;
@@ -170,51 +375,6 @@ TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeMainGameArea() {
 
 						return  FText::FromString(FString::FromInt(CountBombs - CountFlagged));
 					})
-				]
-			]
-			+ SHorizontalBox::Slot()
-			.FillWidth(1.f)
-			.HAlign(HAlign_Fill)
-			.VAlign(VAlign_Center)
-			.Padding(0.0f)
-			[
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.HAlign(HAlign_Right)
-				.VAlign(VAlign_Center)
-				.Padding(0.0f)
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString(TEXT("Current Action")))
-					.Justification(ETextJustify::Type::Left)
-					.MinDesiredWidth(60)
-				]
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.HAlign(HAlign_Right)
-				.VAlign(VAlign_Center)
-				.Padding(0.0f)
-				[
-					SNew(SBox)
-					.VAlign(VAlign_Center)
-					.HAlign(HAlign_Fill)
-					.HeightOverride(21)
-					[
-						SNew(SComboBox<TSharedPtr<FText>>)
-						.OptionsSource(&_actionComboOptions)
-						.IsEnabled(true)
-						.OnGenerateWidget_Lambda([](TSharedPtr<FText> Item)
-						{
-							return SNew(STextBlock).Text(*Item);
-						})
-						.Content()
-						[
-							SNew(STextBlock)
-							.Text(this, &SMinesweeperGameBoard::GetSelectedActionOption)
-						]
-						.OnSelectionChanged(this, &SMinesweeperGameBoard::OnSelectedActionChanged)
-					]
 				]
 			]
 			+ SHorizontalBox::Slot()
@@ -633,22 +793,12 @@ void SMinesweeperGameBoard::PopulateGrid() {
 	});
 }
 
-void SMinesweeperGameBoard::RunAction(const FMinesweeperCellCoordinate& InCoordinates) {
+void SMinesweeperGameBoard::RunAction(TSharedRef<IMinesweeperAction> InAction, const FMinesweeperCellCoordinate& InCoordinates) {
 	check(_gameSession.IsValid());
 
-	_actionFunctions[_selectedActionIndex](_gameSession, InCoordinates);
+	_gameSession->RunAction(InAction, InCoordinates);
 
 	PopulateGrid();
-}
-
-void SMinesweeperGameBoard::OnSelectedActionChanged(TSharedPtr<FText> InNewItem, ESelectInfo::Type InSelectType) {
-	_selectedActionIndex = _actionComboOptions.IndexOfByPredicate([InNewItem](TSharedPtr<FText> InElement) {
-		return InElement->ToString() == InNewItem->ToString();
-	});
-}
-
-FText SMinesweeperGameBoard::GetSelectedActionOption() const { 
-	return *_actionComboOptions[_selectedActionIndex].Get();
 }
 
 FCellStyle SMinesweeperGameBoard::_getEmptyCellStyle(const FMinesweeperCellCoordinate& InCellCoordinates) const {
@@ -762,6 +912,15 @@ TSharedRef<SWidget> SMinesweeperGameBoard::_makeWidgetForCell(const FMinesweeper
 			SNew(SImage)
 			.Image(FMinesweeperGameUIStyle::Get().GetBrush("MinesweeperGameUI.Flag"))
 		);
+	} else if (InCell.IsQuestionMarked()) {
+		CurrentCellStyle = _questionMarkCellStyle;
+		CurrentCellStyle.SetContentWidget(
+			SNew(STextBlock)
+			.Text(FText::FromString(CurrentCellStyle.Text))
+			.ColorAndOpacity(CurrentCellStyle.TextColor)
+			.Justification(ETextJustify::Center)
+			.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.NumberOfMineStyle")).Font)
+		);
 	}
 
 	return
@@ -778,12 +937,20 @@ TSharedRef<SWidget> SMinesweeperGameBoard::_makeWidgetForCell(const FMinesweeper
 		.MinAspectRatio(1)
 		.Content()
 		[
-			SNew(SButton)
+			SNew(SButtonClickable)
 			.HAlign(HAlign_Fill)
 			.VAlign(VAlign_Fill)
 			.ButtonColorAndOpacity(CurrentCellStyle.BackgroundColor)
-			.OnClicked_Lambda([this, InCellCoordinates]() {
-				RunAction(InCellCoordinates);
+			.OnLeftClicked_Lambda([this, InCellCoordinates]() {
+				RunAction(FMinesweeperActions::Sweep, InCellCoordinates);
+				return FReply::Handled();
+			})
+			.OnMiddleClicked_Lambda([this, InCellCoordinates]() {
+				RunAction(FMinesweeperActions::Mark, InCellCoordinates);
+				return FReply::Handled();
+			})
+			.OnRightClicked_Lambda([this, InCellCoordinates]() {
+				RunAction(FMinesweeperActions::Flag, InCellCoordinates);
 				return FReply::Handled();
 			})
 			.Content()
