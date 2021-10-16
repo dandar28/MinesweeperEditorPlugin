@@ -541,7 +541,22 @@ void SMinesweeperGameBoard::PopulateGrid() {
 			int RowIndex = InCoordinates.Y;
 			_cellsGridPanel->AddSlot(ColumnIndex, RowIndex)
 				[
-					_makeWidgetForCell(InCoordinates, InRefCell)
+					SNew(SMinesweeperCell)
+					.GameSession(_gameSession)
+					.CellCoordinates(InCoordinates)
+					.Cell(InRefCell)
+					.OnLeftClicked_Lambda([this](const FMinesweeperCellCoordinate& InCellCoordinates, const FMinesweeperCell& InCell) {
+						RunAction(FMinesweeperActions::Sweep, InCellCoordinates);
+						return FReply::Handled();
+					})
+					.OnMiddleClicked_Lambda([this](const FMinesweeperCellCoordinate& InCellCoordinates, const FMinesweeperCell& InCell) {
+						RunAction(FMinesweeperActions::Mark, InCellCoordinates);
+						return FReply::Handled();
+					})
+					.OnRightClicked_Lambda([this](const FMinesweeperCellCoordinate& InCellCoordinates, const FMinesweeperCell& InCell) {
+						RunAction(FMinesweeperActions::Flag, InCellCoordinates);
+						return FReply::Handled();
+					})
 				];
 		});
 	});
@@ -553,170 +568,4 @@ void SMinesweeperGameBoard::RunAction(TSharedRef<IMinesweeperAction> InAction, c
 	_gameSession->RunAction(InAction, InCoordinates);
 
 	PopulateGrid();
-}
-
-FCellStyle SMinesweeperGameBoard::_getEmptyCellStyle(const FMinesweeperCellCoordinate& InCellCoordinates) const {
-	check(_gameSession.IsValid());
-
-	const auto Matrix = _gameSession->GetGameDataState()->Matrix;
-
-	ensure(_emptyCellStylePerBombsAdjacencyCount.Num() == 9);
-
-	const int CountOfAdjacentBombs = FMinesweeperMatrixNavigator(Matrix.ToSharedRef()).CountAdjacentBombs(InCellCoordinates);
-	FCellStyle OutStyle = _emptyCellStylePerBombsAdjacencyCount[CountOfAdjacentBombs];
-	if (CountOfAdjacentBombs > 0) {
-		OutStyle.SetText(FString::FromInt(CountOfAdjacentBombs));
-	}
-
-	return OutStyle;
-}
-
-FLinearColor SMinesweeperGameBoard::_emptyCellColorIntensityDark = FLinearColor(FColor::Cyan) * 0.5;
-FLinearColor SMinesweeperGameBoard::_emptyCellColorIntensityLight = FLinearColor(FColor::Cyan) * 0.8;
-
-TArray<FCellStyle> SMinesweeperGameBoard::_emptyCellStylePerBombsAdjacencyCount = TArray<FCellStyle>{
-	FCellStyle()
-		.SetBackgroundColor(_emptyCellColorIntensityDark)
-		.SetTextColor(FLinearColor::White),
-
-	FCellStyle()
-		.SetBackgroundColor(_emptyCellColorIntensityLight)
-		.SetTextColor(FLinearColor::Blue),
-
-	FCellStyle()
-		.SetBackgroundColor(_emptyCellColorIntensityLight)
-		.SetTextColor(FLinearColor::Green),
-
-	FCellStyle()
-		.SetBackgroundColor(_emptyCellColorIntensityLight)
-		.SetTextColor(FLinearColor::Red),
-
-	FCellStyle()
-		.SetBackgroundColor(_emptyCellColorIntensityLight)
-		.SetTextColor(FLinearColor::Red),
-
-	FCellStyle()
-		.SetBackgroundColor(_emptyCellColorIntensityLight)
-		.SetTextColor(FLinearColor::Red),
-
-	FCellStyle()
-		.SetBackgroundColor(_emptyCellColorIntensityLight)
-		.SetTextColor(FLinearColor::Red),
-
-	FCellStyle()
-		.SetBackgroundColor(_emptyCellColorIntensityLight)
-		.SetTextColor(FLinearColor::Red),
-
-	FCellStyle()
-		.SetBackgroundColor(_emptyCellColorIntensityLight)
-		.SetTextColor(FLinearColor::Red)
-};
-
-FCellStyle SMinesweeperGameBoard::_hiddenCellStyle = FCellStyle()
-	.SetBackgroundColor(FLinearColor::White)
-	.SetText("");
-
-FCellStyle SMinesweeperGameBoard::_bombCellStyle = FCellStyle()
-	.SetBackgroundColor(FLinearColor::Red)
-	.SetTextColor(FLinearColor::White)
-	.SetText("Bomb");
-
-FCellStyle SMinesweeperGameBoard::_flagCellStyle = FCellStyle()
-	.SetBackgroundColor(FLinearColor::Yellow)
-	.SetTextColor(FLinearColor::White)
-	.SetText("Flag");
-
-FCellStyle SMinesweeperGameBoard::_questionMarkCellStyle = FCellStyle()
-	.SetBackgroundColor(FLinearColor(FColor::Cyan))
-	.SetTextColor(FLinearColor::White)
-	.SetText("?");
-
-TSharedRef<SWidget> SMinesweeperGameBoard::_makeWidgetForCell(const FMinesweeperCellCoordinate& InCellCoordinates, const FMinesweeperCell& InCell) {
-	check(_gameSession.IsValid());
-
-	const auto Matrix = _gameSession->GetGameDataState()->Matrix;
-
-	FCellStyle CurrentCellStyle = _hiddenCellStyle;
-
-	if (InCell.IsRevealed()) {
-		switch (InCell.CellState) {
-		case EMinesweeperCellState::Empty:
-			CurrentCellStyle = _getEmptyCellStyle(InCellCoordinates);
-			CurrentCellStyle.SetContentWidget(
-				SNew(STextBlock)
-					.Text(FText::FromString(CurrentCellStyle.Text))
-					.ColorAndOpacity(CurrentCellStyle.TextColor)
-					.Justification(ETextJustify::Center)
-					.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.NumberOfMineStyle")).Font)
-			);
-
-			break;
-		case EMinesweeperCellState::Bomb:
-			CurrentCellStyle = _bombCellStyle;
-			CurrentCellStyle.SetContentWidget(
-				SNew(SImage)
-				.Image(FMinesweeperGameUIStyle::Get().GetBrush("MinesweeperGameUI.Bomb"))
-			);
-
-			break;
-		}
-	} else if (InCell.IsFlagged()) {
-		CurrentCellStyle = _flagCellStyle;
-		CurrentCellStyle.SetContentWidget(
-			SNew(SImage)
-			.Image(FMinesweeperGameUIStyle::Get().GetBrush("MinesweeperGameUI.Flag"))
-		);
-	} else if (InCell.IsQuestionMarked()) {
-		CurrentCellStyle = _questionMarkCellStyle;
-		CurrentCellStyle.SetContentWidget(
-			SNew(STextBlock)
-			.Text(FText::FromString(CurrentCellStyle.Text))
-			.ColorAndOpacity(CurrentCellStyle.TextColor)
-			.Justification(ETextJustify::Center)
-			.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.NumberOfMineStyle")).Font)
-		);
-	}
-
-	return
-		SNew(SBox)
-		.HAlign(HAlign_Fill)
-		.VAlign(VAlign_Fill)
-		.WidthOverride(40)
-		.HeightOverride(40)
-		.MinDesiredWidth(40)
-		.MinDesiredHeight(40)
-		.MaxDesiredWidth(40)
-		.MaxDesiredHeight(40)
-		.MaxAspectRatio(1)
-		.MinAspectRatio(1)
-		.Content()
-		[
-			SNew(SClickableButton)
-			.HAlign(HAlign_Fill)
-			.VAlign(VAlign_Fill)
-			.ButtonColorAndOpacity(CurrentCellStyle.BackgroundColor)
-			.OnLeftClicked_Lambda([this, InCellCoordinates]() {
-				RunAction(FMinesweeperActions::Sweep, InCellCoordinates);
-				return FReply::Handled();
-			})
-			.OnMiddleClicked_Lambda([this, InCellCoordinates]() {
-				RunAction(FMinesweeperActions::Mark, InCellCoordinates);
-				return FReply::Handled();
-			})
-			.OnRightClicked_Lambda([this, InCellCoordinates]() {
-				RunAction(FMinesweeperActions::Flag, InCellCoordinates);
-				return FReply::Handled();
-			})
-			.Content()
-			[
-				SNew(SScaleBox)
-				.StretchDirection(EStretchDirection::Both)
-				.Stretch(EStretch::ScaleToFit)
-				.HAlign(EHorizontalAlignment::HAlign_Fill)
-				.VAlign(EVerticalAlignment::VAlign_Center)
-				[
-					CurrentCellStyle.ContentWidget.IsValid() ? CurrentCellStyle.ContentWidget.ToSharedRef() : SNew(SBox)
-				]
-			]
-		];
 }

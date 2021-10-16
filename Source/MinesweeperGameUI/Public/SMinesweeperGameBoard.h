@@ -4,6 +4,7 @@
 #include "SlateExtras.h"
 
 #include "SNumericSettingEntry.h"
+#include "SMinesweeperCell.h"
 
 #include "Minesweeper/FMinesweeperGameSession.h"
 
@@ -15,33 +16,6 @@ enum EDifficultyLevel {
 	Intermediate,
 	Expert,
 	Custom
-};
-
-/**
- * \brief - Structure which represent the style data for a cell.
- */
-struct FCellStyle {
-	FCellStyle& SetTextColor(const FLinearColor& InColor) {
-		TextColor = InColor;
-		return *this;
-	}
-	FCellStyle& SetBackgroundColor(const FLinearColor& InColor) {
-		BackgroundColor = InColor;
-		return *this;
-	}
-	FCellStyle& SetText(const FString& InText) {
-		Text = InText;
-		return *this;
-	}
-	FCellStyle& SetContentWidget(const TSharedPtr<SWidget> InWidget) {
-		ContentWidget = InWidget;
-		return *this;
-	}
-
-	TSharedPtr<SWidget> ContentWidget;
-	FLinearColor TextColor = FLinearColor::Black;
-	FLinearColor BackgroundColor = FLinearColor::White;
-	FString Text;
 };
 
 /**
@@ -79,29 +53,6 @@ public:
 	void RunAction(TSharedRef<IMinesweeperAction> InAction, const FMinesweeperCellCoordinate& InCoordinates);
 
 private:
-
-	FCellStyle _getEmptyCellStyle(const FMinesweeperCellCoordinate& InCellCoordinates) const;
-
-	static TArray<FCellStyle> _emptyCellStylePerBombsAdjacencyCount;
-	static FCellStyle _hiddenCellStyle;
-	static FCellStyle _bombCellStyle;
-	static FCellStyle _flagCellStyle;
-	static FCellStyle _questionMarkCellStyle;
-
-	static FLinearColor _emptyCellColorIntensityDark;
-	static FLinearColor _emptyCellColorIntensityLight;
-	
-	/**
-	 * \brief - Make the widget representing the visual appearence for a cell.
-	 * \param[in] InCellCoordinates - Coordinates of the target cell.
-	 * \param[in] InCell - Target cell to be represented.
-	 * \return A slate widget that represents the cell visually.
-	 */
-	TSharedRef<SWidget> _makeWidgetForCell(
-		const FMinesweeperCellCoordinate& InCellCoordinates,
-		const FMinesweeperCell& InCell
-	);
-
 	/**
 	 * \brief - Make the whole area of the settings.
 	 * \param[in] InPlayButtonClicked - Callback for the OnClicked event of the PlayStop button.
