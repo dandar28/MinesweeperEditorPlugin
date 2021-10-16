@@ -10,8 +10,7 @@ class MINESWEEPERGAMELOGICS_API FGameOverLogicState
 public:
 	virtual ~FGameOverLogicState() = default;
 
-	void FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) override {}
-	void SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) override {}
+	void RunAction(TSharedRef<IMinesweeperAction> InAction, const FMinesweeperCellCoordinate& InCoordinates) override {}
 
 	/**
 	 * \brief - When entering the game over state, broadcast OnGameOver event and reveal all cells.

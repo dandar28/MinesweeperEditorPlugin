@@ -10,8 +10,7 @@ class MINESWEEPERGAMELOGICS_API FPlayingLogicState
 public:
 	virtual ~FPlayingLogicState() = default;
 
-	void FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) override;
-	void SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) override;
+	void RunAction(TSharedRef<IMinesweeperAction> InAction, const FMinesweeperCellCoordinate& InCoordinates) override;
 
 	/**
 	 * \brief - When entering the game playing-logic, we want to start the timer and prepare the gameplay state.
@@ -22,7 +21,4 @@ public:
 	 * \brief - When exiting the game playing-logic, we want to stop the timer and reset the gameplay state.
 	 */
 	void OnExit() override;
-
-private:
-	void _performAction(TSharedRef<IMinesweeperAction> InAction, const FMinesweeperCellCoordinate& InCoordinates);
 };

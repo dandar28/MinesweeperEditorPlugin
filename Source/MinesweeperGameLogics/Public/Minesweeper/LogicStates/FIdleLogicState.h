@@ -10,6 +10,5 @@ class MINESWEEPERGAMELOGICS_API FIdleLogicState
 public:
 	virtual ~FIdleLogicState() = default;
 
-	void FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) override {}
-	void SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) override {}
+	void RunAction(TSharedRef<IMinesweeperAction> InAction, const FMinesweeperCellCoordinate& InCoordinates) override {}
 };

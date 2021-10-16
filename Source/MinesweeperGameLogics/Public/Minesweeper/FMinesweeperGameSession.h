@@ -59,6 +59,19 @@ public:
 	 * \brief - Play the actual game with the current game settings after starting up the session.
 	 */
 	void PlayGame();
+	
+	/**
+	 * \brief - Run a generic action on the current logic state.
+	 * \param[in] InAction - Generic action to be performed.
+	 * \param[in] InCoordinates - Target coordinates on which the action should be performed.
+	 */
+	void RunAction(TSharedRef<IMinesweeperAction> InAction, const FMinesweeperCellCoordinate& InCoordinates);
+
+	/**
+	 * \brief - Try to put a question mark on certain cell coordinates.
+	 * \param[in] InCoordinates - Target cell coordinates.
+	 */
+	void MarkOnCell(const FMinesweeperCellCoordinate& InCoordinates);
 
 	/**
 	 * \brief - Put a flag on certain cell coordinates.
