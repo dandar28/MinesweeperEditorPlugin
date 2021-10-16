@@ -62,18 +62,23 @@ void FMinesweeperGameSession::PlayGame() {
 	_gameLogicStateMachine->GoToState<FPlayingLogicState>();
 }
 
-void FMinesweeperGameSession::FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
+void FMinesweeperGameSession::RunAction(TSharedRef<IMinesweeperAction> InAction, const FMinesweeperCellCoordinate& InCoordinates) {
 	check(IsRunning());
 
 	auto CurrentLogicState = _gameLogicStateMachine->GetGameLogicStateAs<IMinesweeperGameLogicState>();
-	CurrentLogicState->FlagOnCell(InCoordinates);
+	CurrentLogicState->RunAction(InAction, InCoordinates);
+}
+
+void FMinesweeperGameSession::MarkOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
+	RunAction(FMinesweeperActions::Mark, InCoordinates);
+}
+
+void FMinesweeperGameSession::FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
+	RunAction(FMinesweeperActions::Flag, InCoordinates);
 }
 
 void FMinesweeperGameSession::SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
-	check(IsRunning());
-
-	auto CurrentLogicState = _gameLogicStateMachine->GetGameLogicStateAs<IMinesweeperGameLogicState>();
-	CurrentLogicState->SweepOnCell(InCoordinates);
+	RunAction(FMinesweeperActions::Sweep, InCoordinates);
 }
 
 TSharedRef<FGameStateMachine> FMinesweeperGameSession::GetLogicStateMachine() const {

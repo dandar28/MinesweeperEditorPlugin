@@ -46,6 +46,86 @@ struct FCellStyle {
 	FString Text;
 };
 
+class MINESWEEPERGAMEUI_API SButtonClickable
+	: public SButton {
+public:
+	SLATE_BEGIN_ARGS(SButtonClickable)
+		: _Content()
+		, _ButtonStyle(&FCoreStyle::Get().GetWidgetStyle< FButtonStyle >("Button"))
+		, _TextStyle(&FCoreStyle::Get().GetWidgetStyle< FTextBlockStyle >("NormalText"))
+		, _HAlign(HAlign_Fill)
+		, _VAlign(VAlign_Fill)
+		, _ContentPadding(FMargin(4.0, 2.0))
+		, _Text()
+		, _ClickMethod(EButtonClickMethod::DownAndUp)
+		, _TouchMethod(EButtonTouchMethod::DownAndUp)
+		, _PressMethod(EButtonPressMethod::DownAndUp)
+		, _DesiredSizeScale(FVector2D(1, 1))
+		, _ContentScale(FVector2D(1, 1))
+		, _ButtonColorAndOpacity(FLinearColor::White)
+		, _ForegroundColor(FCoreStyle::Get().GetSlateColor("InvertedForeground"))
+		, _IsFocusable(true)
+	{
+	}
+
+		SLATE_EVENT(FOnClicked, OnLeftClicked)
+		SLATE_EVENT(FOnClicked, OnMiddleClicked)
+		SLATE_EVENT(FOnClicked, OnRightClicked)
+
+		SLATE_EVENT(FOnClicked, OnLeftDoubleClicked)
+		SLATE_EVENT(FOnClicked, OnMiddleDoubleClicked)
+		SLATE_EVENT(FOnClicked, OnRightDoubleClicked)
+
+		SLATE_DEFAULT_SLOT(FArguments, Content)
+		SLATE_STYLE_ARGUMENT(FButtonStyle, ButtonStyle)
+		SLATE_STYLE_ARGUMENT(FTextBlockStyle, TextStyle)
+		SLATE_ARGUMENT(EHorizontalAlignment, HAlign)
+		SLATE_ARGUMENT(EVerticalAlignment, VAlign)
+		SLATE_ATTRIBUTE(FMargin, ContentPadding)
+		SLATE_ATTRIBUTE(FText, Text)
+		SLATE_EVENT(FOnClicked, OnClicked)
+		SLATE_EVENT(FSimpleDelegate, OnPressed)
+		SLATE_EVENT(FSimpleDelegate, OnReleased)
+		SLATE_EVENT(FSimpleDelegate, OnHovered)
+		SLATE_EVENT(FSimpleDelegate, OnUnhovered)
+		SLATE_ARGUMENT(EButtonClickMethod::Type, ClickMethod)
+		SLATE_ARGUMENT(EButtonTouchMethod::Type, TouchMethod)
+		SLATE_ARGUMENT(EButtonPressMethod::Type, PressMethod)
+		SLATE_ATTRIBUTE(FVector2D, DesiredSizeScale)
+		SLATE_ATTRIBUTE(FVector2D, ContentScale)
+		SLATE_ATTRIBUTE(FSlateColor, ButtonColorAndOpacity)
+		SLATE_ATTRIBUTE(FSlateColor, ForegroundColor)
+		SLATE_ARGUMENT(bool, IsFocusable)
+		SLATE_ARGUMENT(TOptional<FSlateSound>, PressedSoundOverride)
+		SLATE_ARGUMENT(TOptional<FSlateSound>, HoveredSoundOverride)
+		SLATE_ARGUMENT(TOptional<ETextShapingMethod>, TextShapingMethod)
+		SLATE_ARGUMENT(TOptional<ETextFlowDirection>, TextFlowDirection)
+	SLATE_END_ARGS()
+
+	FOnClicked OnLeftClicked;
+	FOnClicked OnMiddleClicked;
+	FOnClicked OnRightClicked;
+
+	FOnClicked OnLeftDoubleClicked;
+	FOnClicked OnMiddleDoubleClicked;
+	FOnClicked OnRightDoubleClicked;
+
+	// SButtonClickable();
+	void Construct(const FArguments& InArgs);
+
+	FReply OnMouseButtonDown(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent) override;
+	FReply OnMouseButtonDoubleClick(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent) override;
+	FReply OnMouseButtonUp(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent) override;
+
+protected:
+	virtual FReply _executeOnClick(FOnClicked& InRefDelegate);
+	virtual FReply _executeButtonClick(const FKey& InEffectingButton, bool bIsDoubleClick = false);
+
+private:
+	FReply _handleMouseButtonDown(const FPointerEvent& InMouseEvent, bool bIsDoubleClick = false);
+	FReply _handleMouseButtonUp(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent);
+};
+
 /**
  * \brief - Slate widget that renders a minesweeper game board visually and handles the
  *			game logic bindings with the UI updates through an instanced game session.
@@ -79,17 +159,7 @@ public:
 	 * \brief - Run the selected action from the UI to the target coordinates.
 	 * \param[in] InCoordinates - Target coordinates to run the action on.
 	 */
-	void RunAction(const FMinesweeperCellCoordinate& InCoordinates);
-
-	/**
-	 * \brief - When the selected action changes, update the selected action index.
-	 */
-	void OnSelectedActionChanged(TSharedPtr<FText> InNewItem, ESelectInfo::Type InSelectType);
-
-	/**
-	 * \return The selected action option string.
-	 */
-	FText GetSelectedActionOption() const;
+	void RunAction(TSharedRef<IMinesweeperAction> InAction, const FMinesweeperCellCoordinate& InCoordinates);
 
 private:
 
@@ -159,31 +229,6 @@ private:
 	TSharedPtr<SUniformGridPanel> _cellsGridPanel;
 
 	/**
-	 * \brief - Array of options for the possible actions to be performed.
-	 */
-	const TArray<TSharedPtr<FText>> _actionComboOptions = TArray<TSharedPtr<FText>>{
-		MakeShared<FText>(FText::FromString("Sweep")),
-		MakeShared<FText>(FText::FromString("Flag"))
-	};
-
-	/**
-	 * \brief - Function type which takes a game session and a cell coordinate to perform an action on it.
-	 */
-	using FActionFunction = TFunction<void(TSharedPtr<FMinesweeperGameSession>, const FMinesweeperCellCoordinate&)>;
-
-	/**
-	 * \brief - Array of ordered action functions for each option label of _actionComboOptions.
-	 */
-	const TArray<FActionFunction> _actionFunctions = TArray<FActionFunction>{
-		[](auto InGameSession, const auto& InCoordinates) {
-			InGameSession->SweepOnCell(InCoordinates);
-		},
-		[](auto InGameSession, const auto& InCoordinates) {
-			InGameSession->FlagOnCell(InCoordinates);
-		}
-	};
-
-	/**
 	 * \brief - True when a game is being played and it is not finished yet.
 	 */
 	FThreadSafeBool _bIsPlaying = false;
@@ -212,11 +257,6 @@ private:
 	 * \brief - Currently selected predefined difficulty level index.
 	 */
 	int32 _selectedDifficultyIndex = 0;
-
-	/**
-	 * \brief - Currently selected action index.
-	 */
-	int32 _selectedActionIndex = 0;
 
 	/**
 	 * \brief - Slate object of the numeric entry of the Width setting.

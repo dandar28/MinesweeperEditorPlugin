@@ -11,15 +11,7 @@
 
 #include "Minesweeper/FMinesweeperActions.h"
 
-void FPlayingLogicState::FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
-	_performAction(FMinesweeperActions::Flag, InCoordinates);
-}
-
-void FPlayingLogicState::SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) {
-	_performAction(FMinesweeperActions::Sweep, InCoordinates);
-}
-
-void FPlayingLogicState::_performAction(TSharedRef<IMinesweeperAction> InAction, const FMinesweeperCellCoordinate& InCoordinates) {
+void FPlayingLogicState::RunAction(TSharedRef<IMinesweeperAction> InAction, const FMinesweeperCellCoordinate& InCoordinates) {
 	check(GameSession.IsValid());
 	check(GameDataState.IsValid());
 

@@ -31,6 +31,10 @@ class FMinesweeperActions::FMinesweeperActionSweep : public IMinesweeperAction {
 		// Reveal the target cell.
 		Cell.SetRevealed(true);
 
+		// Unflag and unmark the target cell.
+		Cell.SetFlagged(false);
+		Cell.SetQuestionMarked(false);
+
 		switch (Cell.CellState) {
 		case EMinesweeperCellState::Bomb:
 			// When interacting with a bomb, transit to game over.
@@ -56,8 +60,18 @@ class FMinesweeperActions::FMinesweeperActionFlag : public IMinesweeperAction {
 		auto GameDataState = InGameSession->GetGameDataState();
 		check(GameDataState->Matrix->Has(InCoordinates));
 
-		// Toggle the flag on the target cell.
+		// Obtain a reference to the target cell to flag.
 		FMinesweeperCell& Cell = GameDataState->Matrix->Get(InCoordinates);
+
+		// If the target cell is already revealed, we don't want to flag it.
+		if (Cell.IsRevealed()) {
+			return;
+		}
+
+		// Unmark the target cell.
+		Cell.SetQuestionMarked(false);
+
+		// Toggle the flag on the target cell.
 		Cell.SetFlagged(!Cell.IsFlagged());
 	}
 };
@@ -69,8 +83,18 @@ class FMinesweeperActions::FMinesweeperActionMark : public IMinesweeperAction {
 		auto GameDataState = InGameSession->GetGameDataState();
 		check(GameDataState->Matrix->Has(InCoordinates));
 
-		// Toggle the question mark on the target cell.
+		// Obtain a reference to the target cell to flag.
 		FMinesweeperCell& Cell = GameDataState->Matrix->Get(InCoordinates);
+
+		// If the target cell is already revealed, we don't want to mark it.
+		if (Cell.IsRevealed()) {
+			return;
+		}
+
+		// Unflag the target cell.
+		Cell.SetFlagged(false);
+
+		// Toggle the question mark on the target cell.
 		Cell.SetQuestionMarked(!Cell.IsQuestionMarked());
 	}
 };

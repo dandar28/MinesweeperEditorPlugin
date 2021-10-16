@@ -14,8 +14,7 @@ class MINESWEEPERGAMELOGICS_API IMinesweeperGameLogicState
 public:
 	virtual ~IMinesweeperGameLogicState() = default;
 
-	virtual void FlagOnCell(const FMinesweeperCellCoordinate& InCoordinates) = 0;
-	virtual void SweepOnCell(const FMinesweeperCellCoordinate& InCoordinates) = 0;
+	virtual void RunAction(TSharedRef<IMinesweeperAction> InAction, const FMinesweeperCellCoordinate& InCoordinates) = 0;
 
 	/**
 	 * \brief - Data state of the related Minesweeper game session.
