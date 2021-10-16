@@ -3,11 +3,9 @@
 #include "SlateBasics.h"
 #include "SlateExtras.h"
 
-#include "Widgets/Input/SNumericEntryBox.h"
+#include "SNumericSettingEntry.h"
 
 #include "Minesweeper/FMinesweeperGameSession.h"
-
-#include "TNumericSettingEntry.h"
 
 /**
  * \brief - Enum containing the available difficulty levels settable for the game.
@@ -105,15 +103,6 @@ private:
 	);
 
 	/**
-	 * \brief - Make a setting entry for numeric type values through a description templated class and a reference to 
-	 *			the numeric entry box slate object to get in output.
-	 * \param[in] InNumericSettingEntry - Descriptor for the setting entry to be created.
-	 * \param[in] OutOwningEntryBox - Output shared pointer to the slate object of the created numeric entry box.
-	 * \return The slate object of the horizontal box of the full created setting entry.
-	 */
-	TSharedRef<SHorizontalBox> _makeNumericSettingEntry(const TNumericSettingEntry<int>& InNumericSettingEntry, TSharedPtr<SNumericEntryBox<int>>& OutOwningEntryBox);
-
-	/**
 	 * \brief - Make the whole area of the settings.
 	 * \param[in] InPlayButtonClicked - Callback for the OnClicked event of the PlayStop button.
 	 * \return The slate object of the vertical box of the full created settings area.
@@ -180,17 +169,17 @@ private:
 	/**
 	 * \brief - Slate object of the numeric entry of the Width setting.
 	 */
-	TSharedPtr<SNumericEntryBox<int>> _numericEntryWidth;
+	TSharedPtr<SNumericSettingEntry<int>> _numericEntryWidth;
 
 	/**
 	 * \brief - Slate object of the numeric entry of the Height setting.
 	 */
-	TSharedPtr<SNumericEntryBox<int>> _numericEntryHeight;
+	TSharedPtr<SNumericSettingEntry<int>> _numericEntryHeight;
 
 	/**
 	 * \brief - Slate object of the numeric entry of the NumberOfMines setting.
 	 */
-	TSharedPtr<SNumericEntryBox<int>> _numericEntryNumberOfMines;
+	TSharedPtr<SNumericSettingEntry<int>> _numericEntryNumberOfMines;
 
 	/**
 	 * \brief - Slate object of the difficulty combo box setting.

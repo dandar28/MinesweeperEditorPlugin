@@ -4,6 +4,7 @@
 
 #include "MinesweeperGameUIStyle.h"
 #include "SClickableButton.h"
+#include "SNumericSettingEntry.h"
 
 #include "Minesweeper/FMinesweeperMatrixNavigator.h"
 
@@ -22,57 +23,48 @@ TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeSettingsArea(const TFunctio
 		.AutoHeight()
 		.Padding(LateralPadding, 0.0f, LateralPadding, LateralPadding)
 		[
-			_makeNumericSettingEntry(
-				TNumericSettingEntry<int>()
-				.SetEntryName(TEXT("Width"))
-				.SetValueGetter([this]() {
-					return _gameSettings->MatrixBoardSize.X;
-				})
-				.SetValueSetter([this](int InNewValue) {
-					_gameSettings->MatrixBoardSize.X = InNewValue;
-				})
-				.SetMinValue(1)
-				.SetMaxValue(80),
-				_numericEntryWidth
-			)
+			SAssignNew(_numericEntryWidth, SNumericSettingEntry<int>)
+			.EntryName(TEXT("Width"))
+			.ValueGetter([this]() {
+				return _gameSettings->MatrixBoardSize.X;
+			})
+			.ValueSetter([this](int InNewValue) {
+				_gameSettings->MatrixBoardSize.X = InNewValue;
+			})
+			.MinValue(1)
+			.MaxValue(80)
 		]
 		+ SVerticalBox::Slot()
 		.VAlign(VAlign_Fill)
 		.AutoHeight()
 		.Padding(LateralPadding, 0.0f, LateralPadding, LateralPadding)
 		[
-			_makeNumericSettingEntry(
-				TNumericSettingEntry<int>()
-				.SetEntryName(TEXT("Height"))
-				.SetValueGetter([this]() {
-					return _gameSettings->MatrixBoardSize.Y;
-				})
-				.SetValueSetter([this](int InNewValue) {
-					_gameSettings->MatrixBoardSize.Y = InNewValue;
-				})
-				.SetMinValue(1)
-				.SetMaxValue(80), 
-				_numericEntryHeight
-			)
+			SAssignNew(_numericEntryHeight, SNumericSettingEntry<int>)
+			.EntryName(TEXT("Height"))
+			.ValueGetter([this]() {
+				return _gameSettings->MatrixBoardSize.Y;
+			})
+			.ValueSetter([this](int InNewValue) {
+				_gameSettings->MatrixBoardSize.Y = InNewValue;
+			})
+			.MinValue(1)
+			.MaxValue(80)
 		]
 		+ SVerticalBox::Slot()
 		.VAlign(VAlign_Fill)
 		.AutoHeight()
 		.Padding(LateralPadding, 0.0f, LateralPadding, LateralPadding)
 		[
-			_makeNumericSettingEntry(
-				TNumericSettingEntry<int>()
-				.SetEntryName(TEXT("Number Of Mines"))
-				.SetValueGetter([this, BombsCountValueClamper]() {
-					return BombsCountValueClamper(_gameSettings->NumberOfMines);
-				})
-				.SetValueSetter([this, BombsCountValueClamper](int InNewValue) {
-					_gameSettings->NumberOfMines = BombsCountValueClamper(InNewValue);
-				})
-				.SetMinValue(1)
-				.SetMaxValue(999), 
-				_numericEntryNumberOfMines
-			)
+			SAssignNew(_numericEntryNumberOfMines, SNumericSettingEntry<int>)
+			.EntryName(TEXT("Number Of Mines"))
+			.ValueGetter([this, BombsCountValueClamper]() {
+				return BombsCountValueClamper(_gameSettings->NumberOfMines);
+			})
+			.ValueSetter([this, BombsCountValueClamper](int InNewValue) {
+				_gameSettings->NumberOfMines = BombsCountValueClamper(InNewValue);
+			})
+			.MinValue(1)
+			.MaxValue(999)
 		]
 		+ SVerticalBox::Slot()
 		.VAlign(VAlign_Fill)
@@ -340,40 +332,6 @@ void SMinesweeperGameBoard::_executeReplay() {
 		_gameSession->GetGameDataState()->TickTimer.StopTimer();
 	});
 
-}
-
-TSharedRef<SHorizontalBox> SMinesweeperGameBoard::_makeNumericSettingEntry(const TNumericSettingEntry<int>& InNumericSettingEntry, TSharedPtr<SNumericEntryBox<int>>& OutOwningEntryBox) {
-	return
-		SNew(SHorizontalBox)
-		+ SHorizontalBox::Slot()
-		.FillWidth(0.5f)
-		.HAlign(HAlign_Left)
-		.VAlign(VAlign_Center)
-		.Padding(0.0f)
-		[
-			SNew(STextBlock)
-			.Text(FText::FromString(InNumericSettingEntry.EntryName))
-			.Justification(ETextJustify::Type::Left)
-			.MinDesiredWidth(60)
-		]
-		+ SHorizontalBox::Slot()
-		.FillWidth(0.5f)
-		.HAlign(HAlign_Left)
-		.VAlign(VAlign_Center)
-		.Padding(0.0f)
-		[
-			SAssignNew(OutOwningEntryBox, SNumericEntryBox<int>)
-			.Value(InNumericSettingEntry.ValueGetter().Get(0))
-			.MinValue(InNumericSettingEntry.MinValue)
-			.MaxValue(InNumericSettingEntry.MaxValue)
-			.MinDesiredValueWidth(200)
-			.OnValueCommitted_Lambda([InNumericSettingEntry](int InNewValue, ETextCommit::Type InCommitType) {
-				InNumericSettingEntry.ValueSetter(InNumericSettingEntry.Clamp(InNewValue));
-			})
-			.Value_Lambda([InNumericSettingEntry]() -> TOptional<int32> {
-				return InNumericSettingEntry.Clamp(InNumericSettingEntry.ValueGetter().Get(0));
-			})
-		];
 }
 
 void SMinesweeperGameBoard::_setNewDifficultyLevel(EDifficultyLevel InNewDifficultyLevel) {
