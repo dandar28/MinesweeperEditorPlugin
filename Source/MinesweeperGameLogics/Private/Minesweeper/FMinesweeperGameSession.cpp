@@ -49,6 +49,11 @@ bool FMinesweeperGameSession::IsRunning() const {
 	return _bIsRunning;
 }
 
+
+bool FMinesweeperGameSession::IsPlaying() const {
+	return _bIsPlaying;
+}
+
 void FMinesweeperGameSession::SetSettings(const FMinesweeperGameSettings& InSettings) {
 	_gameSettings = InSettings;
 }
@@ -60,6 +65,28 @@ FMinesweeperGameSettings FMinesweeperGameSession::GetSettings() const {
 void FMinesweeperGameSession::PlayGame() {
 	check(IsRunning());
 	_gameLogicStateMachine->GoToState<FPlayingLogicState>();
+
+	// Set boolean stating that this game is being played.
+	_bIsPlaying = true;
+
+	//<<<	Listen next state change in order to notify this session that the game is not being played
+	//		anymore as soon as the state changes. If the state changes back to a playing state, then
+	//		it will set its _bIsPlaying boolean back to true after this event has been called.
+	//		This event will be listened only once, and its binding will be removed after first execution.
+	TSharedRef<FDelegateHandle> OnStateChangedOnceHandle = MakeShared<FDelegateHandle>();
+	TWeakPtr<FMinesweeperGameSession> ThisWeakSession = this->AsShared();
+	TWeakPtr<FGameStateMachine> WeakStateMachine = _gameLogicStateMachine;
+	(*OnStateChangedOnceHandle) = _gameLogicStateMachine->OnLogicStateChanged.AddLambda([OnStateChangedOnceHandle, WeakStateMachine, ThisWeakSession](TSharedRef<FAbstractLogicState> InNewState) {
+		if (ThisWeakSession.IsValid()) {
+			ThisWeakSession.Pin()->_bIsPlaying = false;
+		}
+
+		check(WeakStateMachine.IsValid());
+		if (WeakStateMachine.IsValid()) {
+			WeakStateMachine.Pin()->OnLogicStateChanged.Remove(*OnStateChangedOnceHandle);
+		}
+	});
+	//>>>
 }
 
 void FMinesweeperGameSession::RunAction(TSharedRef<IMinesweeperAction> InAction, const FMinesweeperCellCoordinate& InCoordinates) {
