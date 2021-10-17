@@ -15,8 +15,7 @@ void FMinesweeperCell::SetQuestionMarked(bool bQuestionMarked) {
 void FMinesweeperCell::SetFlagged(bool bFlagged) {
 	if (bFlagged) {
 		Flags |= EMinesweeperCellFlags::Flagged;
-	}
-	else {
+	} else {
 		Flags &= ~EMinesweeperCellFlags::Flagged;
 	}
 }
@@ -24,8 +23,7 @@ void FMinesweeperCell::SetFlagged(bool bFlagged) {
 void FMinesweeperCell::SetRevealed(bool bRevealed) {
 	if (bRevealed) {
 		Flags |= EMinesweeperCellFlags::Revealed;
-	}
-	else {
+	} else {
 		Flags &= ~EMinesweeperCellFlags::Revealed;
 	}
 }
