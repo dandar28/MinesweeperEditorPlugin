@@ -3,6 +3,11 @@
 #include "SlateBasics.h"
 #include "SlateExtras.h"
 
+/**
+ * \brief - Extended version of SButton which allows to capture events for other mouse buttons
+ *			than left button, so that also middle and right button can be listened.
+ *			It also handles double click for all the buttons.
+ */
 class MINESWEEPERGAMEUI_API SClickableButton
 	: public SButton {
 public:

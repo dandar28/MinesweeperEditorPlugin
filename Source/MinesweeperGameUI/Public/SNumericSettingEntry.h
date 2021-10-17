@@ -5,6 +5,10 @@
 
 #include "Widgets/Input/SNumericEntryBox.h"
 
+/**
+ * \brief - Slate widget representing a setting entry with a label and a numeric value
+ *			shown into an horizontal box.
+ */
 template <typename NumberType>
 class MINESWEEPERGAMEUI_API SNumericSettingEntry
 	: public SCompoundWidget {
