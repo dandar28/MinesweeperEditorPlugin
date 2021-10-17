@@ -51,7 +51,7 @@ TSharedRef< FSlateStyleSet > FMinesweeperGameUIStyle::Create()
 	Style->Set(
 		"MinesweeperGameUI.TimerDisplayStyle",
 		FTextBlockStyle(FTextBlockStyle::GetDefault())
-		.SetFont(TTF_FONT("Let's go Digital Regular", 40))
+		.SetFont(TTF_FONT("digital-7 (mono)", 40))
 		.SetFontSize(40)
 	);	
 
