@@ -32,13 +32,15 @@ struct FCellStyle {
 	FString Text;
 };
 
+/**
+ * \brief - Declaration of delegate for click events after an action on a cell.
+ */
 DECLARE_DELEGATE_RetVal_TwoParams(FReply, FOnMinesweeperCellAction,
 	const FMinesweeperCellCoordinate&,
 	const FMinesweeperCell&)
 
 /**
- * \brief - Slate widget that renders a minesweeper game board visually and handles the
- *			game logic bindings with the UI updates through an instanced game session.
+ * \brief - Slate widget that renders a minesweeper cell with respect to its state.
  */
 class MINESWEEPERGAMEUI_API SMinesweeperCell
 	: public SCompoundWidget {
@@ -48,7 +50,7 @@ public:
 	{}
 		SLATE_ARGUMENT(FMinesweeperCellCoordinate, CellCoordinates)
 		SLATE_ARGUMENT(FMinesweeperCell, Cell)
-		SLATE_ARGUMENT(TSharedPtr<FMinesweeperGameSession>, GameSession)
+		SLATE_ARGUMENT(TWeakPtr<FMinesweeperGameSession>, GameSession)
 
 		SLATE_EVENT(FOnMinesweeperCellAction, OnLeftClicked)
 		SLATE_EVENT(FOnMinesweeperCellAction, OnMiddleClicked)
@@ -62,9 +64,6 @@ public:
 	FOnMinesweeperCellAction OnRightClicked;
 
 private:
-
-	FCellStyle _getEmptyCellStyle(const FMinesweeperCellCoordinate& InCellCoordinates) const;
-
 	static TArray<FCellStyle> _emptyCellStylePerBombsAdjacencyCount;
 	static FCellStyle _hiddenCellStyle;
 	static FCellStyle _bombCellStyle;
@@ -73,12 +72,4 @@ private:
 
 	static FLinearColor _emptyCellColorIntensityDark;
 	static FLinearColor _emptyCellColorIntensityLight;
-	
-	/**
-	 * \brief - Owned game session that is running on this game board UI widget.
-	 */
-	TSharedPtr<FMinesweeperGameSession> _gameSession;
-
-	FMinesweeperCellCoordinate _cellCoordinates;
-	FMinesweeperCell _cell;
 };

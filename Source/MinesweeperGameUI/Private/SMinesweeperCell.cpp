@@ -7,22 +7,6 @@
 
 #include "Minesweeper/FMinesweeperMatrixNavigator.h"
 
-FCellStyle SMinesweeperCell::_getEmptyCellStyle(const FMinesweeperCellCoordinate& InCellCoordinates) const {
-	check(_gameSession.IsValid());
-
-	const auto Matrix = _gameSession->GetGameDataState()->Matrix;
-
-	ensure(_emptyCellStylePerBombsAdjacencyCount.Num() == 9);
-
-	const int CountOfAdjacentBombs = FMinesweeperMatrixNavigator(Matrix.ToSharedRef()).CountAdjacentBombs(InCellCoordinates);
-	FCellStyle OutStyle = _emptyCellStylePerBombsAdjacencyCount[CountOfAdjacentBombs];
-	if (CountOfAdjacentBombs > 0) {
-		OutStyle.SetText(FString::FromInt(CountOfAdjacentBombs));
-	}
-
-	return OutStyle;
-}
-
 FLinearColor SMinesweeperCell::_emptyCellColorIntensityDark = FLinearColor(FColor::Cyan) * 0.5;
 FLinearColor SMinesweeperCell::_emptyCellColorIntensityLight = FLinearColor(FColor::Cyan) * 0.8;
 
@@ -84,24 +68,35 @@ FCellStyle SMinesweeperCell::_questionMarkCellStyle = FCellStyle()
 	.SetText("?");
 
 void SMinesweeperCell::Construct(const FArguments& InArgs) {
-	_gameSession = InArgs._GameSession;
-	check(_gameSession.IsValid());
-
-	_cellCoordinates = InArgs._CellCoordinates;
-	_cell = InArgs._Cell;
+	const auto GameSession = InArgs._GameSession;
+	check(GameSession.IsValid());
 
 	OnLeftClicked = InArgs._OnLeftClicked;
 	OnMiddleClicked = InArgs._OnMiddleClicked;
 	OnRightClicked = InArgs._OnRightClicked;
 
-	const auto Matrix = _gameSession->GetGameDataState()->Matrix;
+	const auto GetEmptyCellStyle = [GameSession](const FMinesweeperCellCoordinate& InCellCoordinates) -> FCellStyle {
+		check(GameSession.IsValid());
+
+		const auto Matrix = GameSession.Pin()->GetGameDataState()->Matrix;
+
+		ensure(_emptyCellStylePerBombsAdjacencyCount.Num() == 9);
+
+		const int CountOfAdjacentBombs = FMinesweeperMatrixNavigator(Matrix.ToSharedRef()).CountAdjacentBombs(InCellCoordinates);
+		FCellStyle OutStyle = _emptyCellStylePerBombsAdjacencyCount[CountOfAdjacentBombs];
+		if (CountOfAdjacentBombs > 0) {
+			OutStyle.SetText(FString::FromInt(CountOfAdjacentBombs));
+		}
+
+		return OutStyle;
+	};
 
 	FCellStyle CurrentCellStyle = _hiddenCellStyle;
 
 	if (InArgs._Cell.IsRevealed()) {
 		switch (InArgs._Cell.CellState) {
 		case EMinesweeperCellState::Empty:
-			CurrentCellStyle = _getEmptyCellStyle(InArgs._CellCoordinates);
+			CurrentCellStyle = GetEmptyCellStyle(InArgs._CellCoordinates);
 			CurrentCellStyle.SetContentWidget(
 				SNew(STextBlock)
 					.Text(FText::FromString(CurrentCellStyle.Text))
