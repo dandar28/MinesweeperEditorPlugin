@@ -220,7 +220,7 @@ void SMinesweeperGameBoard::_executeReplay() {
 	_bShouldStopReplay.AtomicSet(false);
 
 	// Run the executions of replay in a parallel thread in order to allow time sleeps.
-	AsyncTask(ENamedThreads::AnyThread, [this, ReplayActions, TimeStart, ReplayTimeStart, TaskGuid]() {
+	AsyncTask(ENamedThreads::AnyThread, [ThisAsShared = this->AsShared(), this, ReplayActions, TimeStart, ReplayTimeStart, TaskGuid]() {
 		// If this execution has been cleared from the set of execution guids or we should replay as external event
 		// then we need to exit this immediately before doing anything.
 		{
@@ -255,7 +255,7 @@ void SMinesweeperGameBoard::_executeReplay() {
 			const auto PopAction = ReplayActions->Actions[0];
 			ReplayActions->Actions.RemoveAt(0);
 
-			AsyncTask(ENamedThreads::GameThread, [this, PopAction]() {
+			AsyncTask(ENamedThreads::GameThread, [ThisAsShared, this, PopAction]() {
 				// Perform the next action to replay.
 				PopAction.Action->Perform(_gameSession.ToSharedRef(), PopAction.InteractedCell);
 
