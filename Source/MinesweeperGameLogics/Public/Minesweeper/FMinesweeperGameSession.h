@@ -45,6 +45,11 @@ public:
 	bool IsRunning() const override;
 
 	/**
+	 * \return True if this game session is being played: after PlayGame() and until the state changes and game ends.
+	 */
+	bool IsPlaying() const;
+
+	/**
 	 * \brief - Prepare this game session's settings.
 	 * \param[in] InSettings - Settings to prepare this game session for.
 	 */
@@ -105,6 +110,11 @@ private:
 	 * \brief - Boolean true when this game session is running after being started up and before being shut down.
 	 */
 	bool _bIsRunning = false;
+
+	/**
+	 * \brief - Boolean true when this game is being played after a PlayGame() call.
+	 */
+	bool _bIsPlaying = false;
 
 	/**
 	 * \brief - Game settings to be used when game is played.

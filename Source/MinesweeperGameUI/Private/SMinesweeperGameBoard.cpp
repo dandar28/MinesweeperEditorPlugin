@@ -97,7 +97,7 @@ TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeMainGameArea() {
 			})
 			.IsEnabled_Lambda([this]() {
 				// When a game session is started up but the game is not being played but it has been stopped first.
-				return _gameSession->IsRunning() && !_bIsPlaying;
+				return _gameSession->IsRunning() && !_gameSession->IsPlaying();
 			})
 		]
 		+ SVerticalBox::Slot()
@@ -237,7 +237,6 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	// When the player wins the game, show a popup and update the view.
 	_gameSession->OnGameWin.AddLambda([this]() {
 		_bShouldStopReplay.AtomicSet(true);
-		_bIsPlaying.AtomicSet(false);
 		_gameSession->GetGameDataState()->TickTimer.StopTimer();
 
 		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString("You Won!"));
@@ -248,7 +247,6 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	// When the player loses the game, show a popup and update the view.
 	_gameSession->OnGameOver.AddLambda([this]() {
 		_bShouldStopReplay.AtomicSet(true);
-		_bIsPlaying.AtomicSet(false);
 		_gameSession->GetGameDataState()->TickTimer.StopTimer();
 
 		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString("You Lost!"));
@@ -338,7 +336,6 @@ void SMinesweeperGameBoard::StartGameWithCurrentSettings() {
 	_gameSession->PlayGame();
 
 	_timeStart = _gameSession->GetGameDataState()->TickTimer.GetTimeStart();
-	_bIsPlaying.AtomicSet(true);
 }
 
 void SMinesweeperGameBoard::PopulateGrid() {
