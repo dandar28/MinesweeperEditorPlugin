@@ -109,7 +109,7 @@ void SMinesweeperMainGameArea::Construct(const FArguments& InArgs) {
 							}
 
 							const auto GameDataState = GameSession.Pin()->GetGameDataState();
-							return  FText::FromString(GameDataState->TickTimer.GetTimeElapsedFromStart().ToString(TEXT("%m:%s")));
+							return  FText::FromString(GameDataState->TickTimer.GetTimeElapsedFromStart().ToString(TEXT("%m:%s")).RightChop(1));
 						})
 					]
 				]
