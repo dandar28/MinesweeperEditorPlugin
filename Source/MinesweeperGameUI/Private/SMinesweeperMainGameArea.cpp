@@ -28,7 +28,7 @@ void SMinesweeperMainGameArea::Construct(const FArguments& InArgs) {
 					.MinDesiredWidth(60)
 					.ColorAndOpacity(FColor::Red)
 					.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.TimerDisplayStyle")).Font)
-					.Text_Lambda([this]() { 
+					.Text_Lambda([GameSession]() {
 						if (!GameSession.IsValid() || !GameSession.Pin()->IsRunning()) {
 							return FText::FromString(TEXT("Count"));
 						}
@@ -68,7 +68,7 @@ void SMinesweeperMainGameArea::Construct(const FArguments& InArgs) {
 					.MinDesiredWidth(60)
 					.ColorAndOpacity(FColor::Red)
 					.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.TimerDisplayStyle")).Font)
-					.Text_Lambda([this]() { 
+					.Text_Lambda([GameSession]() {
 						if (!GameSession.IsValid() || !GameSession.Pin()->IsRunning()) {
 							return FText::FromString(TEXT("Timer"));
 						}
@@ -88,7 +88,7 @@ void SMinesweeperMainGameArea::Construct(const FArguments& InArgs) {
 			SNew(SButton)
 			.Text(FText::FromString(TEXT("Replay")))
 			.OnClicked(InArgs._OnReplayButtonClicked)
-			.IsEnabled_Lambda([this]() {
+			.IsEnabled_Lambda([GameSession]() {
 				// When a game session is started up but the game is not being played but it has been stopped first.
 				return GameSession.IsValid() && GameSession.Pin()->IsRunning() && !GameSession.Pin()->IsPlaying();
 			})
