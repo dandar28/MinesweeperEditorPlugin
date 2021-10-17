@@ -43,11 +43,6 @@ public:
 	void RunAction(TSharedRef<IMinesweeperAction> InAction, const FMinesweeperCellCoordinate& InCoordinates);
 
 private:
-	/**
-	 * \brief - Make the whole area of the game view where the game is played.
-	 * \return The slate object of the vertical box of the full created game area.
-	 */
-	TSharedRef<SVerticalBox> _makeMainGameArea();
 
 	/**
 	 * \brief - This methods shows and plays the Replay of the actions history so far.
@@ -63,11 +58,6 @@ private:
 	 * \brief - Grid panel holding the cells in a tabular organization.
 	 */
 	TSharedPtr<SUniformGridPanel> _cellsGridPanel;
-
-	/**
-	 * \brief - True when a game is being played and it is not finished yet.
-	 */
-	FThreadSafeBool _bIsPlaying = false;
 
 	/**
 	 * \brief - Last play's time start.
