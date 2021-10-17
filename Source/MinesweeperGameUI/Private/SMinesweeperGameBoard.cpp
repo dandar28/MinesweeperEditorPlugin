@@ -3,118 +3,9 @@
 #include "Widgets/Layout/SScaleBox.h"
 
 #include "MinesweeperGameUIStyle.h"
-#include "SClickableButton.h"
-#include "SNumericSettingEntry.h"
+#include "SMinesweeperGameSettings.h"
 
 #include "Minesweeper/FMinesweeperMatrixNavigator.h"
-
-TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeSettingsArea(const TFunction<void()>& InPlayButtonClicked) {
-	const auto BombsCountValueClamper = [this](int InValue) -> int {
-		const auto MatrixSize = _gameSettings->MatrixBoardSize;
-		const int MatrixBoardArea = MatrixSize.X * MatrixSize.Y;
-		return FMath::Clamp<int>(InValue, 1, MatrixBoardArea);
-	};
-
-	const float LateralPadding = 12.0f;
-	return
-		SNew(SVerticalBox)
-		+ SVerticalBox::Slot()
-		.VAlign(VAlign_Fill)
-		.AutoHeight()
-		.Padding(LateralPadding, 0.0f, LateralPadding, LateralPadding)
-		[
-			SAssignNew(_numericEntryWidth, SNumericSettingEntry<int>)
-			.EntryName(TEXT("Width"))
-			.ValueGetter([this]() {
-				return _gameSettings->MatrixBoardSize.X;
-			})
-			.ValueSetter([this](int InNewValue) {
-				_gameSettings->MatrixBoardSize.X = InNewValue;
-			})
-			.MinValue(1)
-			.MaxValue(80)
-		]
-		+ SVerticalBox::Slot()
-		.VAlign(VAlign_Fill)
-		.AutoHeight()
-		.Padding(LateralPadding, 0.0f, LateralPadding, LateralPadding)
-		[
-			SAssignNew(_numericEntryHeight, SNumericSettingEntry<int>)
-			.EntryName(TEXT("Height"))
-			.ValueGetter([this]() {
-				return _gameSettings->MatrixBoardSize.Y;
-			})
-			.ValueSetter([this](int InNewValue) {
-				_gameSettings->MatrixBoardSize.Y = InNewValue;
-			})
-			.MinValue(1)
-			.MaxValue(80)
-		]
-		+ SVerticalBox::Slot()
-		.VAlign(VAlign_Fill)
-		.AutoHeight()
-		.Padding(LateralPadding, 0.0f, LateralPadding, LateralPadding)
-		[
-			SAssignNew(_numericEntryNumberOfMines, SNumericSettingEntry<int>)
-			.EntryName(TEXT("Number Of Mines"))
-			.ValueGetter([this, BombsCountValueClamper]() {
-				return BombsCountValueClamper(_gameSettings->NumberOfMines);
-			})
-			.ValueSetter([this, BombsCountValueClamper](int InNewValue) {
-				_gameSettings->NumberOfMines = BombsCountValueClamper(InNewValue);
-			})
-			.MinValue(1)
-			.MaxValue(999)
-		]
-		+ SVerticalBox::Slot()
-		.VAlign(VAlign_Fill)
-		.AutoHeight()
-		.Padding(LateralPadding, 0.0f, LateralPadding, LateralPadding)
-		[
-			SAssignNew(_difficultyComboBox, SComboBox<TSharedPtr<FText>>)
-			.OptionsSource(&_difficultyComboOptions)
-			.IsEnabled(true)
-			.OnGenerateWidget_Lambda([](TSharedPtr<FText> Item)
-			{
-				return SNew(STextBlock).Text(*Item);
-			})
-			.Content()
-			[
-				SNew(STextBlock)
-				.Text_Lambda([this]() -> FText {
-					return *_difficultyComboOptions[_selectedDifficultyIndex].Get();
-				})
-			]
-			.OnSelectionChanged_Lambda([this](TSharedPtr<FText> InNewItem, ESelectInfo::Type InSelectType) {
-				const EDifficultyLevel NewDifficultyLevel = (EDifficultyLevel)_difficultyComboOptions.IndexOfByPredicate([InNewItem](TSharedPtr<FText> InElement) {
-					return InElement->ToString() == InNewItem->ToString();
-				});
-
-				_setNewDifficultyLevel(NewDifficultyLevel);
-			})
-		]
-		+ SVerticalBox::Slot()
-		.VAlign(VAlign_Fill)
-		.AutoHeight()
-		.Padding(LateralPadding, 0.0f, LateralPadding, LateralPadding)
-		[
-			SNew(SBox)
-			.WidthOverride(150)
-			.HeightOverride(40)
-			.Content()
-			[
-				SNew(SButton)
-				.Text_Lambda([this]() -> FText {
-					const FString PlayResetButtonText = _gameSession->IsRunning() ? TEXT("Stop!") : TEXT("Play!");
-					return FText::FromString(PlayResetButtonText);
-				})
-				.OnClicked_Lambda([InPlayButtonClicked]() {
-					InPlayButtonClicked();
-					return FReply::Handled();
-				})
-			]
-		];
-}
 
 TSharedRef<SVerticalBox> SMinesweeperGameBoard::_makeMainGameArea() {
 	const float LateralPadding = 12.0f;
@@ -334,28 +225,6 @@ void SMinesweeperGameBoard::_executeReplay() {
 
 }
 
-void SMinesweeperGameBoard::_setNewDifficultyLevel(EDifficultyLevel InNewDifficultyLevel) {
-	// Update custom settings with the ones that we just left.
-	const EDifficultyLevel CurrentDifficultyLevel = (EDifficultyLevel)_selectedDifficultyIndex;
-	if (CurrentDifficultyLevel == EDifficultyLevel::Custom) {
-		_difficultyLevelsSettings[EDifficultyLevel::Custom] = (*_gameSettings);
-	}
-
-	// Update the index with the new selected one.
-	_selectedDifficultyIndex = (int)InNewDifficultyLevel;
-
-	// Update the game settings with the ones of the selected difficulty level.
-	const EDifficultyLevel NewDifficultyLevel = (EDifficultyLevel)_selectedDifficultyIndex;
-	const FMinesweeperGameSettings& PredefinedGameSettings = _difficultyLevelsSettings[NewDifficultyLevel];
-	(*_gameSettings) = PredefinedGameSettings;
-
-	// Enable settings widgets only when we are in Custom difficulty mode.
-	const bool bIsNewDifficultyCustom = NewDifficultyLevel == EDifficultyLevel::Custom;
-	_numericEntryWidth->SetEnabled(bIsNewDifficultyCustom);
-	_numericEntryHeight->SetEnabled(bIsNewDifficultyCustom);
-	_numericEntryNumberOfMines->SetEnabled(bIsNewDifficultyCustom);
-}
-
 void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	bCanSupportFocus = true;
 
@@ -363,40 +232,7 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	_gameSession = InArgs._GameSession;
 	check(_gameSession.IsValid());
 
-	// Populate all difficulty levels' settings.
-	{
-		_difficultyLevelsSettings.Add(EDifficultyLevel::Beginner, ([]() -> FMinesweeperGameSettings {
-			FMinesweeperGameSettings EasyGameSettings;
-			EasyGameSettings.MatrixBoardSize = FIntPoint(9, 9);
-			EasyGameSettings.NumberOfMines = 10;
-			return EasyGameSettings;
-		})());
-
-		_difficultyLevelsSettings.Add(EDifficultyLevel::Intermediate, ([]() -> FMinesweeperGameSettings {
-			FMinesweeperGameSettings MediumGameSettings;
-			MediumGameSettings.MatrixBoardSize = FIntPoint(16, 16);
-			MediumGameSettings.NumberOfMines = 40;
-			return MediumGameSettings;
-		})());
-
-		_difficultyLevelsSettings.Add(EDifficultyLevel::Expert, ([]() -> FMinesweeperGameSettings {
-			FMinesweeperGameSettings MediumGameSettings;
-			MediumGameSettings.MatrixBoardSize = FIntPoint(30, 30);
-			MediumGameSettings.NumberOfMines = 99;
-			return MediumGameSettings;
-		})());
-
-		_difficultyLevelsSettings.Add(EDifficultyLevel::Custom, ([]() -> FMinesweeperGameSettings {
-			FMinesweeperGameSettings MediumGameSettings;
-			MediumGameSettings.MatrixBoardSize = FIntPoint(30, 30);
-			MediumGameSettings.NumberOfMines = 150;
-			return MediumGameSettings;
-		})());
-	}
-
-	if (!_gameSettings.IsValid()) {
-		_gameSettings = MakeShared<FMinesweeperGameSettings>();
-	}
+	_gameSettings = MakeShared<FMinesweeperGameSettings>();
 
 	// When the player wins the game, show a popup and update the view.
 	_gameSession->OnGameWin.AddLambda([this]() {
@@ -428,51 +264,37 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 		.MinDesiredSlotHeight(40);
 
 	TSharedPtr<SVerticalBox> GameViewBox = _makeMainGameArea();
-	TSharedPtr<SVerticalBox> SettingsBox = _makeSettingsArea([this, GameViewBox]() {
+	TSharedPtr<SMinesweeperGameSettings> SettingsBox;
+	
+	SAssignNew(SettingsBox, SMinesweeperGameSettings)
+	.GameSession(_gameSession)
+	.GameSettings(_gameSettings)
+	.OnPlayButtonClicked_Lambda([this, GameViewBox]() {
 		_bShouldStopReplay.AtomicSet(true);
 
-		// When the game has not been started, we requested to Play the game.
-		if (!_gameSession->IsRunning()) {
-			// The game view becomes visible as long as the game is being played.
-			GameViewBox.Get()->SetVisibility(EVisibility::Visible);
+		// The game view becomes visible as long as the game is being played.
+		GameViewBox.Get()->SetVisibility(EVisibility::Visible);
 
-			// The settings become disabled as long as the game is not stopped.
-			_numericEntryWidth->SetEnabled(false);
-			_numericEntryHeight->SetEnabled(false);
-			_numericEntryNumberOfMines->SetEnabled(false);
-			_difficultyComboBox->SetEnabled(false);
+		// Start the game session with the chosen UI settings.
+		StartGameWithCurrentSettings();
 
-			// Start the game session with the chosen UI settings.
-			StartGameWithCurrentSettings();
+		// Update the view for the first time to populate the game view board matrix.
+		PopulateGrid();
 
-			// Update the view for the first time to populate the game view board matrix.
-			PopulateGrid();
+		return FReply::Handled();
+	})
+	.OnStopButtonClicked_Lambda([this, GameViewBox]() {
+		// Hide the game view since it is not needed until we decide to play the game again.
+		GameViewBox.Get()->SetVisibility(EVisibility::Hidden);
 
-			return;
-		}
+		// Clear the matrix cells of the current game session and update the view to clear it.
+		_gameSession->GetGameDataState()->ClearMatrixCells();
+		PopulateGrid();
 
-		// When the game is running, we requested to Stop the game.
-		{
-			// Hide the game view since it is not needed until we decide to play the game again.
-			GameViewBox.Get()->SetVisibility(EVisibility::Hidden);
+		// Shutdown the game session in order to be logically consistent when we will start it up again.
+		_gameSession->Shutdown();
 
-			// Retrieve current difficulty level because enabling the other settings depends on whether we are in Custom difficulty mode or not.
-			const EDifficultyLevel CurrentDifficultyLevel = (EDifficultyLevel)_selectedDifficultyIndex;
-			const bool bIsCurrentDifficultyCustom = CurrentDifficultyLevel == EDifficultyLevel::Custom;
-
-			// Enable all the setting entries for being able to setup a new game session.
-			_numericEntryWidth->SetEnabled(bIsCurrentDifficultyCustom);
-			_numericEntryHeight->SetEnabled(bIsCurrentDifficultyCustom);
-			_numericEntryNumberOfMines->SetEnabled(bIsCurrentDifficultyCustom);
-			_difficultyComboBox->SetEnabled(true);
-
-			// Clear the matrix cells of the current game session and update the view to clear it.
-			_gameSession->GetGameDataState()->ClearMatrixCells();
-			PopulateGrid();
-
-			// Shutdown the game session in order to be logically consistent when we will start it up again.
-			_gameSession->Shutdown();
-		}
+		return FReply::Handled();
 	});
 
 	ChildSlot
@@ -496,8 +318,6 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 
 	// The game view box is invisible until the Play button is hit.
 	GameViewBox->SetVisibility(EVisibility::Hidden);
-
-	_setNewDifficultyLevel(EDifficultyLevel::Beginner);
 
 	// Update the grid view.
 	if (_gameSession->IsRunning()) {
