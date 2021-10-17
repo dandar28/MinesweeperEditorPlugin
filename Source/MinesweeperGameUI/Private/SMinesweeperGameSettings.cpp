@@ -137,12 +137,12 @@ void SMinesweeperGameSettings::Construct(const FArguments& InArgs) {
 			[
 				SNew(SButton)
 				.Text_Lambda([this]() -> FText {
-					const FString PlayResetButtonText = _gameSession->IsRunning() ? TEXT("Stop!") : TEXT("Play!");
+					const FString PlayResetButtonText = _gameSession.Pin()->IsRunning() ? TEXT("Stop!") : TEXT("Play!");
 					return FText::FromString(PlayResetButtonText);
 				})
 				.OnClicked_Lambda([this, InArgs]() -> FReply {
 					// When the game has not been started, we requested to Play the game.
-					const bool bHasRequestedPlay = !_gameSession->IsRunning();
+					const bool bHasRequestedPlay = !_gameSession.Pin()->IsRunning();
 					const FOnClicked& OnClickedEvent = bHasRequestedPlay ? InArgs._OnPlayButtonClicked : InArgs._OnStopButtonClicked;
 					const FReply Reply = OnClickedEvent.IsBound() ? OnClickedEvent.Execute() : FReply::Unhandled();
 

@@ -19,8 +19,8 @@ enum EDifficultyLevel {
 };
 
 /**
- * \brief - Slate widget that renders a minesweeper game board visually and handles the
- *			game logic bindings with the UI updates through an instanced game session.
+ * \brief - Slate widget that renders the settings area with the visual entries
+ *			for the game settings.
  */
 class MINESWEEPERGAMEUI_API SMinesweeperGameSettings
 	: public SCompoundWidget {
@@ -31,7 +31,7 @@ public:
 	{}
 		SLATE_EVENT(FOnClicked, OnPlayButtonClicked)
 		SLATE_EVENT(FOnClicked, OnStopButtonClicked)
-		SLATE_ARGUMENT(TSharedPtr<FMinesweeperGameSession>, GameSession)
+		SLATE_ARGUMENT(TWeakPtr<FMinesweeperGameSession>, GameSession)
 		SLATE_ARGUMENT(TSharedPtr<FMinesweeperGameSettings>, GameSettings)
 	SLATE_END_ARGS()
 
@@ -48,7 +48,7 @@ private:
 	/**
 	 * \brief - Owned game session that is running on this game board UI widget.
 	 */
-	TSharedPtr<FMinesweeperGameSession> _gameSession;
+	TWeakPtr<FMinesweeperGameSession> _gameSession;
 
 	/**
 	 * \brief - Shared pointer to the actual instance of the game settings updated from the UI.
