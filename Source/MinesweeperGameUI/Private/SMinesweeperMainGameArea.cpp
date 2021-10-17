@@ -64,7 +64,7 @@ void SMinesweeperMainGameArea::Construct(const FArguments& InArgs) {
 				.Content()
 				[
 					SNew(STextBlock)
-					.Justification(ETextJustify::Type::Right)
+					.Justification(ETextJustify::Type::Left)
 					.MinDesiredWidth(60)
 					.ColorAndOpacity(FColor::Red)
 					.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.TimerDisplayStyle")).Font)
