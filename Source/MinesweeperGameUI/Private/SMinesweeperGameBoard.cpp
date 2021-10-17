@@ -15,6 +15,7 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	_gameSession = InArgs._GameSession;
 	check(_gameSession.IsValid());
 
+	// Create the main shared instance of game settings.
 	_gameSettings = MakeShared<FMinesweeperGameSettings>();
 
 	// When the player wins the game, show a popup and update the view.
@@ -145,7 +146,7 @@ void SMinesweeperGameBoard::PopulateGrid() {
 	// Clear the children of the cells grid panel in order to readd all children from zero.
 	_cellsGridPanel->ClearChildren();
 
-	// For each cell, determine the appearence of the cell and add the element as child of the cells grid panel.
+	// For each cell, add its representative slate widget as child of the cells grid panel.
 	FMinesweeperMatrixNavigator(Matrix.ToSharedRef()).ForeachCell([this](const FMinesweeperCellCoordinate& InCoordinates, FMinesweeperCell& InRefCell) {
 		int ColumnIndex = InCoordinates.X;
 		int RowIndex = InCoordinates.Y;

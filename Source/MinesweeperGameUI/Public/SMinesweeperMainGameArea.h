@@ -20,14 +20,8 @@ public:
 	{}
 		SLATE_DEFAULT_SLOT(FArguments, Content)
 		SLATE_EVENT(FOnClicked, OnReplayButtonClicked)
-		SLATE_ARGUMENT(TSharedPtr<FMinesweeperGameSession>, GameSession)
+		SLATE_ARGUMENT(TWeakPtr<FMinesweeperGameSession>, GameSession)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
-
-private:
-	/**
-	 * \brief - Owned game session that is running on this game board UI widget.
-	 */
-	TSharedPtr<FMinesweeperGameSession> _gameSession;
 };

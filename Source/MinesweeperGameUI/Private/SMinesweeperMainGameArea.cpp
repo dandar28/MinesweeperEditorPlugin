@@ -1,7 +1,7 @@
 #include "SMinesweeperMainGameArea.h"
 
 void SMinesweeperMainGameArea::Construct(const FArguments& InArgs) {
-	_gameSession = InArgs._GameSession;
+	const auto GameSession = InArgs._GameSession;
 	
 	const float LateralPadding = 12.0f;
 	ChildSlot
@@ -29,11 +29,11 @@ void SMinesweeperMainGameArea::Construct(const FArguments& InArgs) {
 					.ColorAndOpacity(FColor::Red)
 					.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.TimerDisplayStyle")).Font)
 					.Text_Lambda([this]() { 
-						if (!_gameSession->IsRunning()) {
+						if (!GameSession.IsValid() || !GameSession.Pin()->IsRunning()) {
 							return FText::FromString(TEXT("Count"));
 						}
 
-						const auto GameDataState = _gameSession->GetGameDataState();
+						const auto GameDataState = GameSession.Pin()->GetGameDataState();
 
 						int CountBombs = 0;
 						int CountFlagged = 0;
@@ -69,11 +69,11 @@ void SMinesweeperMainGameArea::Construct(const FArguments& InArgs) {
 					.ColorAndOpacity(FColor::Red)
 					.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.TimerDisplayStyle")).Font)
 					.Text_Lambda([this]() { 
-						if (!_gameSession->IsRunning()) {
+						if (!GameSession.IsValid() || !GameSession.Pin()->IsRunning()) {
 							return FText::FromString(TEXT("Timer"));
 						}
 
-						const auto GameDataState = _gameSession->GetGameDataState();
+						const auto GameDataState = GameSession.Pin()->GetGameDataState();
 						return  FText::FromString(GameDataState->TickTimer.GetTimeElapsedFromStart().ToString(TEXT("%m:%s")));
 					})
 				]
@@ -90,7 +90,7 @@ void SMinesweeperMainGameArea::Construct(const FArguments& InArgs) {
 			.OnClicked(InArgs._OnReplayButtonClicked)
 			.IsEnabled_Lambda([this]() {
 				// When a game session is started up but the game is not being played but it has been stopped first.
-				return _gameSession->IsRunning() && !_gameSession->IsPlaying();
+				return GameSession.IsValid() && GameSession.Pin()->IsRunning() && !GameSession.Pin()->IsPlaying();
 			})
 		]
 		+ SVerticalBox::Slot()
