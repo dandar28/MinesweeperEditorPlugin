@@ -55,6 +55,11 @@ private:
 	TSharedPtr<FMinesweeperGameSession> _gameSession;
 
 	/**
+	 * \brief - Shared pointer to the actual instance of the game settings updated from the UI.
+	 */
+	TSharedPtr<FMinesweeperGameSettings> _gameSettings;
+
+	/**
 	 * \brief - Grid panel holding the cells in a tabular organization.
 	 */
 	TSharedPtr<SUniformGridPanel> _cellsGridPanel;
@@ -78,9 +83,4 @@ private:
 	 * \brief - When this is set to true, existing replaying displays are stopped.
 	 */
 	FThreadSafeBool _bShouldStopReplay = false;
-
-	/**
-	 * \brief - Shared pointer to the actual instance of the game settings updated from the UI.
-	 */
-	TSharedPtr<FMinesweeperGameSettings> _gameSettings;
 };
