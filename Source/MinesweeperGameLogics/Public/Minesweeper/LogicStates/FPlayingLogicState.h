@@ -10,6 +10,11 @@ class MINESWEEPERGAMELOGICS_API FPlayingLogicState
 public:
 	virtual ~FPlayingLogicState() = default;
 
+	/**
+	 * \brief - Run a generic action on certain input coordinates.
+	 * \param[in] InAction - Action to be executed.
+	 * \param[in] InCoordinates - Target coordinates to execute the action on.
+	 */
 	void RunAction(TSharedRef<IMinesweeperAction> InAction, const FMinesweeperCellCoordinate& InCoordinates) override;
 
 	/**
