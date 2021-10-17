@@ -34,7 +34,7 @@ void SMinesweeperMainGameArea::Construct(const FArguments& InArgs) {
 					.HAlign(HAlign_Fill)
 					.VAlign(VAlign_Fill)
 					.WidthOverride(80)
-					.Padding(FMargin(2.f, 4.f))
+					.Padding(FMargin(4.f))
 					.Content()
 					[
 						SNew(STextBlock)
@@ -94,13 +94,13 @@ void SMinesweeperMainGameArea::Construct(const FArguments& InArgs) {
 					SNew(SBox)
 					.HAlign(HAlign_Fill)
 					.VAlign(VAlign_Fill)
-					.WidthOverride(160)
-					.Padding(FMargin(2.f, 4.f))
+					.WidthOverride(130)
+					.Padding(FMargin(4.f))
 					.Content()
 					[
 						SNew(STextBlock)
 						.Justification(ETextJustify::Type::Right)
-						.MinDesiredWidth(150)
+						.MinDesiredWidth(130)
 						.ColorAndOpacity(FColor::Red)
 						.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.TimerDisplayStyle")).Font)
 						.Text_Lambda([GameSession]() {
