@@ -256,6 +256,10 @@ void SMinesweeperGameBoard::_executeReplay() {
 			ReplayActions->Actions.RemoveAt(0);
 
 			AsyncTask(ENamedThreads::GameThread, [ThisAsShared, this, PopAction]() {
+				if (!_gameSession->IsRunning()) {
+					return;
+				}
+
 				// Perform the next action to replay.
 				PopAction.Action->Perform(_gameSession.ToSharedRef(), PopAction.InteractedCell);
 
@@ -272,8 +276,14 @@ void SMinesweeperGameBoard::_executeReplay() {
 				while ((FDateTime::Now() - ReplayTimeStart) < CurrentActionKeyTime);
 			}
 		}
-		
-		// Stop the timer when the replay ends.
-		_gameSession->GetGameDataState()->TickTimer.StopTimer();
+
+		AsyncTask(ENamedThreads::GameThread, [ThisAsShared, this]() {
+			if (!_gameSession->IsRunning()) {
+				return;
+			}
+
+			// Stop the timer when the replay ends.
+			_gameSession->GetGameDataState()->TickTimer.StopTimer();
+		});
 	});
 }
