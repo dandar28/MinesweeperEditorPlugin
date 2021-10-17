@@ -44,13 +44,6 @@ public:
 
 private:
 	/**
-	 * \brief - Make the whole area of the settings.
-	 * \param[in] InPlayButtonClicked - Callback for the OnClicked event of the PlayStop button.
-	 * \return The slate object of the vertical box of the full created settings area.
-	 */
-	TSharedRef<SVerticalBox> _makeSettingsArea(const TFunction<void()>& InPlayButtonClicked);
-
-	/**
 	 * \brief - Make the whole area of the game view where the game is played.
 	 * \return The slate object of the vertical box of the full created game area.
 	 */
