@@ -95,7 +95,7 @@ When closing the main game window, the current game session is shut down.
 
 Development time:
 - The development took 12 days, from October 6th to October 18th
-- The development sessions were occasional and short, few hours a day a day.
+- The development sessions were occasional and short, few hours a day.
 - The stages have been initially scheduled on personal notes.
 - The whole project has been tracked through github issues.
 
