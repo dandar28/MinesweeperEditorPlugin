@@ -18,26 +18,6 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	// Create the main shared instance of game settings.
 	_gameSettings = MakeShared<FMinesweeperGameSettings>();
 
-	// When the player wins the game, show a popup and update the view.
-	_gameSession->OnGameWin.AddLambda([this]() {
-		_bShouldStopReplay.AtomicSet(true);
-		_gameSession->GetGameDataState()->TickTimer.StopTimer();
-
-		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString("You Won!"));
-
-		PopulateGrid();
-	});
-
-	// When the player loses the game, show a popup and update the view.
-	_gameSession->OnGameOver.AddLambda([this]() {
-		_bShouldStopReplay.AtomicSet(true);
-		_gameSession->GetGameDataState()->TickTimer.StopTimer();
-
-		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString("You Lost!"));
-
-		PopulateGrid();
-	});
-
 	// Create a uniform grid panel to host the cells.
 	_cellsGridPanel =
 		SNew(SUniformGridPanel)
@@ -45,12 +25,37 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 		.MinDesiredSlotWidth(40)
 		.MinDesiredSlotHeight(40);
 
+	TSharedPtr<STextBlock> GameOutcomeText =
+		SNew(STextBlock)
+		.Justification(ETextJustify::Type::Center)
+		.ColorAndOpacity(FColor::Red)
+		.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.TimerDisplayStyle")).Font);
+	
+	// When the play ends, let's stop the timer and update the view.
+	_gameSession->OnEndPlay.AddLambda([this]() {
+		_bShouldStopReplay.AtomicSet(true);
+		_gameSession->GetGameDataState()->TickTimer.StopTimer();
+
+		PopulateGrid();
+	});
+
+	// When the player wins the game, update the game outcome text.
+	_gameSession->OnGameWin.AddLambda([GameOutcomeText]() {
+		GameOutcomeText->SetText(FText::FromString("You Won!"));
+	});
+
+	// When the player loses the game, update the game outcome text.
+	_gameSession->OnGameOver.AddLambda([GameOutcomeText]() {
+		GameOutcomeText->SetText(FText::FromString("You Lost!"));
+	});
+
 	TSharedPtr<SMinesweeperMainGameArea> GameViewBox;
 	TSharedPtr<SMinesweeperGameSettings> SettingsBox;
-	
+
 	SAssignNew(GameViewBox, SMinesweeperMainGameArea)
 	.GameSession(_gameSession)
-	.OnReplayButtonClicked_Lambda([this]() {
+	.OnReplayButtonClicked_Lambda([this, GameOutcomeText]() {
+		GameOutcomeText->SetText(FText::FromString(""));
 		_executeReplay();
 		return FReply::Handled();
 	})
@@ -62,7 +67,9 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	SAssignNew(SettingsBox, SMinesweeperGameSettings)
 	.GameSession(_gameSession)
 	.GameSettings(_gameSettings)
-	.OnPlayButtonClicked_Lambda([this, GameViewBox]() {
+	.OnPlayButtonClicked_Lambda([this, GameViewBox, GameOutcomeText]() {
+		GameOutcomeText->SetText(FText::FromString(""));
+
 		_bShouldStopReplay.AtomicSet(true);
 
 		// The game view becomes visible as long as the game is being played.
@@ -76,7 +83,9 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 
 		return FReply::Handled();
 	})
-	.OnStopButtonClicked_Lambda([this, GameViewBox]() {
+	.OnStopButtonClicked_Lambda([this, GameViewBox, GameOutcomeText]() {
+		GameOutcomeText->SetText(FText::FromString(""));
+
 		// Hide the game view since it is not needed until we decide to play the game again.
 		GameViewBox.Get()->SetVisibility(EVisibility::Hidden);
 
@@ -104,8 +113,27 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 			.VAlign(VAlign_Fill)
 			.FillHeight(1.f)
 			.Padding(0.0f, 0.0f, 20.f, 0.0f)
-			[
-				GameViewBox.ToSharedRef()
+			[				
+				SNew(SOverlay)
+				+ SOverlay::Slot()
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Fill)
+				[
+					GameViewBox.ToSharedRef()
+				]
+				+ SOverlay::Slot()
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Fill)
+				[
+					SNew(SScaleBox)
+					.StretchDirection(EStretchDirection::Both)
+					.Stretch(EStretch::ScaleToFit)
+					.Visibility(EVisibility::HitTestInvisible)
+					.Content()
+					[
+						GameOutcomeText.ToSharedRef()
+					]
+				]
 			]
 		];
 
@@ -220,7 +248,7 @@ void SMinesweeperGameBoard::_executeReplay() {
 	_bShouldStopReplay.AtomicSet(false);
 
 	// Run the executions of replay in a parallel thread in order to allow time sleeps.
-	AsyncTask(ENamedThreads::AnyThread, [this, ReplayActions, TimeStart, ReplayTimeStart, TaskGuid]() {
+	AsyncTask(ENamedThreads::AnyThread, [ThisAsShared = this->AsShared(), this, ReplayActions, TimeStart, ReplayTimeStart, TaskGuid]() {
 		// If this execution has been cleared from the set of execution guids or we should replay as external event
 		// then we need to exit this immediately before doing anything.
 		{
@@ -255,7 +283,11 @@ void SMinesweeperGameBoard::_executeReplay() {
 			const auto PopAction = ReplayActions->Actions[0];
 			ReplayActions->Actions.RemoveAt(0);
 
-			AsyncTask(ENamedThreads::GameThread, [this, PopAction]() {
+			AsyncTask(ENamedThreads::GameThread, [ThisAsShared, this, PopAction]() {
+				if (!_gameSession->IsRunning()) {
+					return;
+				}
+
 				// Perform the next action to replay.
 				PopAction.Action->Perform(_gameSession.ToSharedRef(), PopAction.InteractedCell);
 
@@ -272,8 +304,14 @@ void SMinesweeperGameBoard::_executeReplay() {
 				while ((FDateTime::Now() - ReplayTimeStart) < CurrentActionKeyTime);
 			}
 		}
-		
-		// Stop the timer when the replay ends.
-		_gameSession->GetGameDataState()->TickTimer.StopTimer();
+
+		AsyncTask(ENamedThreads::GameThread, [ThisAsShared, this]() {
+			if (!_gameSession->IsRunning()) {
+				return;
+			}
+
+			// Stop the timer when the replay ends.
+			_gameSession->GetGameDataState()->TickTimer.StopTimer();
+		});
 	});
 }

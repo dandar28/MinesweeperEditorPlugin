@@ -36,9 +36,13 @@ void FMinesweeperGameSession::Startup() {
 	});
 
 	_gameLogicStateMachine->GoToState<FIdleLogicState>();
+
+	OnStartup.Broadcast();
 }
 
 void FMinesweeperGameSession::Shutdown() {
+	OnShutdown.Broadcast();
+
 	_gameLogicStateMachine->GoToState<FIdleLogicState>();
 	_gameLogicStateMachine->OnLogicStateChanged.Clear();
 	_bIsRunning = false;
@@ -79,6 +83,7 @@ void FMinesweeperGameSession::PlayGame() {
 	(*OnStateChangedOnceHandle) = _gameLogicStateMachine->OnLogicStateChanged.AddLambda([OnStateChangedOnceHandle, WeakStateMachine, ThisWeakSession](TSharedRef<FAbstractLogicState> InNewState) {
 		if (ThisWeakSession.IsValid()) {
 			ThisWeakSession.Pin()->_bIsPlaying = false;
+			ThisWeakSession.Pin()->OnEndPlay.Broadcast();
 		}
 
 		check(WeakStateMachine.IsValid());
@@ -87,6 +92,8 @@ void FMinesweeperGameSession::PlayGame() {
 		}
 	});
 	//>>>
+
+	OnBeginPlay.Broadcast();
 }
 
 void FMinesweeperGameSession::RunAction(TSharedRef<IMinesweeperAction> InAction, const FMinesweeperCellCoordinate& InCoordinates) {

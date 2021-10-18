@@ -6,7 +6,7 @@ bool FMinesweeperCell::IsRevealed() const { return EnumHasAnyFlags(Flags, EMines
 
 void FMinesweeperCell::SetQuestionMarked(bool bQuestionMarked) {
 	if (bQuestionMarked) {
-		Flags |= EMinesweeperCellFlags::QuestionMarked;
+		Flags = EMinesweeperCellFlags::QuestionMarked;
 	} else {
 		Flags &= ~EMinesweeperCellFlags::QuestionMarked;
 	}
@@ -14,18 +14,16 @@ void FMinesweeperCell::SetQuestionMarked(bool bQuestionMarked) {
 
 void FMinesweeperCell::SetFlagged(bool bFlagged) {
 	if (bFlagged) {
-		Flags |= EMinesweeperCellFlags::Flagged;
-	}
-	else {
+		Flags = EMinesweeperCellFlags::Flagged;
+	} else {
 		Flags &= ~EMinesweeperCellFlags::Flagged;
 	}
 }
 
 void FMinesweeperCell::SetRevealed(bool bRevealed) {
 	if (bRevealed) {
-		Flags |= EMinesweeperCellFlags::Revealed;
-	}
-	else {
+		Flags = EMinesweeperCellFlags::Revealed;
+	} else {
 		Flags &= ~EMinesweeperCellFlags::Revealed;
 	}
 }

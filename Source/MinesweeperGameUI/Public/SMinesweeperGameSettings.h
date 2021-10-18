@@ -81,17 +81,17 @@ private:
 	TSharedPtr<SComboBox<TSharedPtr<FText>>> _difficultyComboBox;
 
 	/**
+	 * \brief - Map that binds each difficulty level to its game settings.
+	 */
+	TMap<EDifficultyLevel, FMinesweeperGameSettings> _difficultyLevelsSettings;
+
+	/**
 	 * \brief - Array of options for the possible difficulties to be chosen.
 	 */
-	const TArray<TSharedPtr<FText>> _difficultyComboOptions = TArray<TSharedPtr<FText>>{
-		MakeShared<FText>(FText::FromString("Beginner")),
-		MakeShared<FText>(FText::FromString("Intermediate")),
-		MakeShared<FText>(FText::FromString("Expert")),
-		MakeShared<FText>(FText::FromString("Custom"))
-	};
+	static TArray<TSharedPtr<FText>> _staticDifficultyComboOptions;
 
 	/**
 	 * \brief - Map that binds each difficulty level to a different default setting instance.
 	 */
-	TMap<EDifficultyLevel, FMinesweeperGameSettings> _difficultyLevelsSettings;
+	static TMap<EDifficultyLevel, FMinesweeperGameSettings> _staticDifficultyLevelsSettings;
 };

@@ -13,69 +13,105 @@ void SMinesweeperMainGameArea::Construct(const FArguments& InArgs) {
 		[
 			SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot()
-			.FillWidth(1.f)
+			.AutoWidth()
 			.HAlign(HAlign_Fill)
 			.VAlign(VAlign_Center)
 			.Padding(0.0f)
 			[
-				SNew(SBox)
+				SNew(SOverlay)
+				+ SOverlay::Slot()
 				.HAlign(HAlign_Fill)
 				.VAlign(VAlign_Fill)
-				.Content()
 				[
-					SNew(STextBlock)
-					.Justification(ETextJustify::Type::Left)
-					.MinDesiredWidth(60)
-					.ColorAndOpacity(FColor::Red)
-					.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.TimerDisplayStyle")).Font)
-					.Text_Lambda([GameSession]() {
-						if (!GameSession.IsValid() || !GameSession.Pin()->IsRunning()) {
-							return FText::FromString(TEXT("Count"));
-						}
-
-						const auto GameDataState = GameSession.Pin()->GetGameDataState();
-
-						int CountBombs = 0;
-						int CountFlagged = 0;
-
-						GameDataState->ForeachCell([&CountFlagged, &CountBombs](const FMinesweeperCellCoordinate&, FMinesweeperCell& InRefCurrentCell) {
-							if (InRefCurrentCell.IsFlagged()) {
-								CountFlagged++;
+					SNew(SImage)
+					.ColorAndOpacity(FColor::Black)
+				]
+				+ SOverlay::Slot()
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Fill)
+				[
+					SNew(SBox)
+					.HAlign(HAlign_Fill)
+					.VAlign(VAlign_Fill)
+					.WidthOverride(80)
+					.Padding(FMargin(4.f))
+					.Content()
+					[
+						SNew(STextBlock)
+						.Justification(ETextJustify::Type::Right)
+						.MinDesiredWidth(60)
+						.ColorAndOpacity(FColor::Red)
+						.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.TimerDisplayStyle")).Font)
+						.Text_Lambda([GameSession]() {
+							if (!GameSession.IsValid() || !GameSession.Pin()->IsRunning()) {
+								return FText::FromString(TEXT("Count"));
 							}
 
-							if (InRefCurrentCell.CellState == EMinesweeperCellState::Bomb) {
-								CountBombs++;
-							}
-						});
+							const auto GameDataState = GameSession.Pin()->GetGameDataState();
 
-						return  FText::FromString(FString::FromInt(CountBombs - CountFlagged));
-					})
+							int CountBombs = 0;
+							int CountFlagged = 0;
+
+							GameDataState->ForeachCell([&CountFlagged, &CountBombs](const FMinesweeperCellCoordinate&, FMinesweeperCell& InRefCurrentCell) {
+								if (InRefCurrentCell.IsFlagged()) {
+									CountFlagged++;
+								}
+
+								if (InRefCurrentCell.CellState == EMinesweeperCellState::Bomb) {
+									CountBombs++;
+								}
+							});
+
+							return  FText::FromString(FString::FromInt(CountBombs - CountFlagged));
+						})
+					]
 				]
 			]
+	
 			+ SHorizontalBox::Slot()
 			.FillWidth(1.f)
 			.HAlign(HAlign_Fill)
 			.VAlign(VAlign_Center)
 			.Padding(0.0f)
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.HAlign(HAlign_Right)
+			.VAlign(VAlign_Center)
+			.Padding(0.0f)
 			[
-				SNew(SBox)
+				SNew(SOverlay)
+				+ SOverlay::Slot()
 				.HAlign(HAlign_Fill)
 				.VAlign(VAlign_Fill)
-				.Content()
 				[
-					SNew(STextBlock)
-					.Justification(ETextJustify::Type::Right)
-					.MinDesiredWidth(60)
-					.ColorAndOpacity(FColor::Red)
-					.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.TimerDisplayStyle")).Font)
-					.Text_Lambda([GameSession]() {
-						if (!GameSession.IsValid() || !GameSession.Pin()->IsRunning()) {
-							return FText::FromString(TEXT("Timer"));
-						}
+					SNew(SImage)
+					.ColorAndOpacity(FColor::Black)
+				]
+				+ SOverlay::Slot()
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Fill)
+				[
+					SNew(SBox)
+					.HAlign(HAlign_Fill)
+					.VAlign(VAlign_Fill)
+					.WidthOverride(130)
+					.Padding(FMargin(4.f))
+					.Content()
+					[
+						SNew(STextBlock)
+						.Justification(ETextJustify::Type::Right)
+						.MinDesiredWidth(130)
+						.ColorAndOpacity(FColor::Red)
+						.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.TimerDisplayStyle")).Font)
+						.Text_Lambda([GameSession]() {
+							if (!GameSession.IsValid() || !GameSession.Pin()->IsRunning()) {
+								return FText::FromString(TEXT("Timer"));
+							}
 
-						const auto GameDataState = GameSession.Pin()->GetGameDataState();
-						return  FText::FromString(GameDataState->TickTimer.GetTimeElapsedFromStart().ToString(TEXT("%m:%s")));
-					})
+							const auto GameDataState = GameSession.Pin()->GetGameDataState();
+							return  FText::FromString(GameDataState->TickTimer.GetTimeElapsedFromStart().ToString(TEXT("%m:%s")).RightChop(1));
+						})
+					]
 				]
 			]
 		]
@@ -110,12 +146,18 @@ void SMinesweeperMainGameArea::Construct(const FArguments& InArgs) {
 			.HAlign(HAlign_Fill)
 			.VAlign(VAlign_Fill)
 			[
-				SNew(SScaleBox)
-				.StretchDirection(EStretchDirection::Both)
-				.Stretch(EStretch::ScaleToFit)
-				.Content()
+				SNew(SBorder)
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Fill)
+				.Clipping(EWidgetClipping::ClipToBoundsAlways)
 				[
-					InArgs._Content.Widget
+					SNew(SScaleBox)
+					.StretchDirection(EStretchDirection::Both)
+					.Stretch(EStretch::ScaleToFit)
+					.Content()
+					[
+						InArgs._Content.Widget
+					]
 				]
 			]
 		]

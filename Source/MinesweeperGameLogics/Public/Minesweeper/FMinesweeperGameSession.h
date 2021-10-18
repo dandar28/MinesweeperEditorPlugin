@@ -13,6 +13,10 @@
 #include "FMinesweeperGameDataState.h"
 #include "FMinesweeperGameSettings.h"
 
+DECLARE_MULTICAST_DELEGATE(FOnStartup);
+DECLARE_MULTICAST_DELEGATE(FOnShutdown);
+DECLARE_MULTICAST_DELEGATE(FOnBeginPlay);
+DECLARE_MULTICAST_DELEGATE(FOnEndPlay);
 DECLARE_MULTICAST_DELEGATE(FOnGameOver);
 DECLARE_MULTICAST_DELEGATE(FOnGameWin);
 
@@ -94,6 +98,26 @@ public:
 	 * \return The logic state machine of this game session.
 	 */
 	TSharedRef<FGameStateMachine> GetLogicStateMachine() const;
+
+	/**
+	 * \brief - Event delegate that is triggered whenever this game session is started up.
+	 */
+	FOnStartup OnStartup;
+
+	/**
+	 * \brief - Event delegate that is triggered whenever this game session is shut down.
+	 */
+	FOnShutdown OnShutdown;
+	
+	/**
+	 * \brief - Event delegate that is triggered whenever the play begins.
+	 */
+	FOnBeginPlay OnBeginPlay;
+
+	/**
+	 * \brief - Event delegate that is triggered whenever the play ends.
+	 */
+	FOnEndPlay OnEndPlay;
 
 	/**
 	 * \brief - Event delegate that is triggered whenever the player hits the game over on this game session.

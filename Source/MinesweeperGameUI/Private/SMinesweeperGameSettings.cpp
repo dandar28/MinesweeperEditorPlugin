@@ -2,6 +2,48 @@
 
 #include "SNumericSettingEntry.h"
 
+TArray<TSharedPtr<FText>> SMinesweeperGameSettings::_staticDifficultyComboOptions = TArray<TSharedPtr<FText>>{
+	MakeShared<FText>(FText::FromString("Beginner")),
+	MakeShared<FText>(FText::FromString("Intermediate")),
+	MakeShared<FText>(FText::FromString("Expert")),
+	MakeShared<FText>(FText::FromString("Custom"))
+};
+
+TMap<EDifficultyLevel, FMinesweeperGameSettings> SMinesweeperGameSettings::_staticDifficultyLevelsSettings = ([]() -> TMap<EDifficultyLevel, FMinesweeperGameSettings> {
+	TMap<EDifficultyLevel, FMinesweeperGameSettings> DifficultyLevelsSettings;
+
+	// Populate all difficulty levels' settings.
+	DifficultyLevelsSettings.Add(EDifficultyLevel::Beginner, ([]() -> FMinesweeperGameSettings {
+		FMinesweeperGameSettings EasyGameSettings;
+		EasyGameSettings.MatrixBoardSize = FIntPoint(9, 9);
+		EasyGameSettings.NumberOfMines = 10;
+		return EasyGameSettings;
+	})());
+
+	DifficultyLevelsSettings.Add(EDifficultyLevel::Intermediate, ([]() -> FMinesweeperGameSettings {
+		FMinesweeperGameSettings MediumGameSettings;
+		MediumGameSettings.MatrixBoardSize = FIntPoint(16, 16);
+		MediumGameSettings.NumberOfMines = 40;
+		return MediumGameSettings;
+	})());
+
+	DifficultyLevelsSettings.Add(EDifficultyLevel::Expert, ([]() -> FMinesweeperGameSettings {
+		FMinesweeperGameSettings MediumGameSettings;
+		MediumGameSettings.MatrixBoardSize = FIntPoint(30, 30);
+		MediumGameSettings.NumberOfMines = 99;
+		return MediumGameSettings;
+	})());
+
+	DifficultyLevelsSettings.Add(EDifficultyLevel::Custom, ([]() -> FMinesweeperGameSettings {
+		FMinesweeperGameSettings MediumGameSettings;
+		MediumGameSettings.MatrixBoardSize = FIntPoint(30, 30);
+		MediumGameSettings.NumberOfMines = 150;
+		return MediumGameSettings;
+	})());
+
+	return DifficultyLevelsSettings;
+})();
+
 void SMinesweeperGameSettings::Construct(const FArguments& InArgs) {
 	_gameSession = InArgs._GameSession;
 	_gameSettings = InArgs._GameSettings;
@@ -9,42 +51,13 @@ void SMinesweeperGameSettings::Construct(const FArguments& InArgs) {
 		_gameSettings = MakeShared<FMinesweeperGameSettings>();
 	}
 
+	_difficultyLevelsSettings = _staticDifficultyLevelsSettings;
+
 	const auto BombsCountValueClamper = [this](int InValue) -> int {
 		const auto MatrixSize = _gameSettings->MatrixBoardSize;
 		const int MatrixBoardArea = MatrixSize.X * MatrixSize.Y;
 		return FMath::Clamp<int>(InValue, 1, MatrixBoardArea);
 	};
-
-	// Populate all difficulty levels' settings.
-	{
-		_difficultyLevelsSettings.Add(EDifficultyLevel::Beginner, ([]() -> FMinesweeperGameSettings {
-			FMinesweeperGameSettings EasyGameSettings;
-			EasyGameSettings.MatrixBoardSize = FIntPoint(9, 9);
-			EasyGameSettings.NumberOfMines = 10;
-			return EasyGameSettings;
-			})());
-
-		_difficultyLevelsSettings.Add(EDifficultyLevel::Intermediate, ([]() -> FMinesweeperGameSettings {
-			FMinesweeperGameSettings MediumGameSettings;
-			MediumGameSettings.MatrixBoardSize = FIntPoint(16, 16);
-			MediumGameSettings.NumberOfMines = 40;
-			return MediumGameSettings;
-			})());
-
-		_difficultyLevelsSettings.Add(EDifficultyLevel::Expert, ([]() -> FMinesweeperGameSettings {
-			FMinesweeperGameSettings MediumGameSettings;
-			MediumGameSettings.MatrixBoardSize = FIntPoint(30, 30);
-			MediumGameSettings.NumberOfMines = 99;
-			return MediumGameSettings;
-			})());
-
-		_difficultyLevelsSettings.Add(EDifficultyLevel::Custom, ([]() -> FMinesweeperGameSettings {
-			FMinesweeperGameSettings MediumGameSettings;
-			MediumGameSettings.MatrixBoardSize = FIntPoint(30, 30);
-			MediumGameSettings.NumberOfMines = 150;
-			return MediumGameSettings;
-			})());
-	}
 
 	const float LateralPadding = 12.0f;
 	ChildSlot
@@ -104,7 +117,7 @@ void SMinesweeperGameSettings::Construct(const FArguments& InArgs) {
 		.Padding(LateralPadding, 0.0f, LateralPadding, LateralPadding)
 		[
 			SAssignNew(_difficultyComboBox, SComboBox<TSharedPtr<FText>>)
-			.OptionsSource(&_difficultyComboOptions)
+			.OptionsSource(&_staticDifficultyComboOptions)
 			.IsEnabled(true)
 			.OnGenerateWidget_Lambda([](TSharedPtr<FText> Item)
 			{
@@ -114,11 +127,11 @@ void SMinesweeperGameSettings::Construct(const FArguments& InArgs) {
 			[
 				SNew(STextBlock)
 				.Text_Lambda([this]() -> FText {
-					return *_difficultyComboOptions[_selectedDifficultyIndex].Get();
+					return *_staticDifficultyComboOptions[_selectedDifficultyIndex].Get();
 				})
 			]
 			.OnSelectionChanged_Lambda([this](TSharedPtr<FText> InNewItem, ESelectInfo::Type InSelectType) {
-				const EDifficultyLevel NewDifficultyLevel = (EDifficultyLevel)_difficultyComboOptions.IndexOfByPredicate([InNewItem](TSharedPtr<FText> InElement) {
+				const EDifficultyLevel NewDifficultyLevel = (EDifficultyLevel)_staticDifficultyComboOptions.IndexOfByPredicate([InNewItem](TSharedPtr<FText> InElement) {
 					return InElement->ToString() == InNewItem->ToString();
 				});
 
