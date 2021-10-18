@@ -18,14 +18,6 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	// Create the main shared instance of game settings.
 	_gameSettings = MakeShared<FMinesweeperGameSettings>();
 
-	// When the play ends, let's stop the timer and update the view.
-	_gameSession->OnEndPlay.AddLambda([this]() {
-		_bShouldStopReplay.AtomicSet(true);
-		_gameSession->GetGameDataState()->TickTimer.StopTimer();
-
-		PopulateGrid();
-	});
-
 	// Create a uniform grid panel to host the cells.
 	_cellsGridPanel =
 		SNew(SUniformGridPanel)
@@ -38,10 +30,13 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 		.Justification(ETextJustify::Type::Center)
 		.ColorAndOpacity(FColor::Red)
 		.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.TimerDisplayStyle")).Font);
+	
+	// When the play ends, let's stop the timer and update the view.
+	_gameSession->OnEndPlay.AddLambda([this]() {
+		_bShouldStopReplay.AtomicSet(true);
+		_gameSession->GetGameDataState()->TickTimer.StopTimer();
 
-	// When the play begins, reset the game outcome text.
-	_gameSession->OnBeginPlay.AddLambda([GameOutcomeText]() {
-		GameOutcomeText->SetText(FText::FromString(""));
+		PopulateGrid();
 	});
 
 	// When the player wins the game, update the game outcome text.
@@ -59,7 +54,8 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 
 	SAssignNew(GameViewBox, SMinesweeperMainGameArea)
 	.GameSession(_gameSession)
-	.OnReplayButtonClicked_Lambda([this]() {
+	.OnReplayButtonClicked_Lambda([this, GameOutcomeText]() {
+		GameOutcomeText->SetText(FText::FromString(""));
 		_executeReplay();
 		return FReply::Handled();
 	})
@@ -71,7 +67,9 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	SAssignNew(SettingsBox, SMinesweeperGameSettings)
 	.GameSession(_gameSession)
 	.GameSettings(_gameSettings)
-	.OnPlayButtonClicked_Lambda([this, GameViewBox]() {
+	.OnPlayButtonClicked_Lambda([this, GameViewBox, GameOutcomeText]() {
+		GameOutcomeText->SetText(FText::FromString(""));
+
 		_bShouldStopReplay.AtomicSet(true);
 
 		// The game view becomes visible as long as the game is being played.
@@ -85,7 +83,9 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 
 		return FReply::Handled();
 	})
-	.OnStopButtonClicked_Lambda([this, GameViewBox]() {
+	.OnStopButtonClicked_Lambda([this, GameViewBox, GameOutcomeText]() {
+		GameOutcomeText->SetText(FText::FromString(""));
+
 		// Hide the game view since it is not needed until we decide to play the game again.
 		GameViewBox.Get()->SetVisibility(EVisibility::Hidden);
 
