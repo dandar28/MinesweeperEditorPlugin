@@ -18,22 +18,10 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 	// Create the main shared instance of game settings.
 	_gameSettings = MakeShared<FMinesweeperGameSettings>();
 
-	// When the player wins the game, show a popup and update the view.
-	_gameSession->OnGameWin.AddLambda([this]() {
+	// When the play ends, let's stop the timer and update the view.
+	_gameSession->OnEndPlay.AddLambda([this]() {
 		_bShouldStopReplay.AtomicSet(true);
 		_gameSession->GetGameDataState()->TickTimer.StopTimer();
-
-		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString("You Won!"));
-
-		PopulateGrid();
-	});
-
-	// When the player loses the game, show a popup and update the view.
-	_gameSession->OnGameOver.AddLambda([this]() {
-		_bShouldStopReplay.AtomicSet(true);
-		_gameSession->GetGameDataState()->TickTimer.StopTimer();
-
-		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString("You Lost!"));
 
 		PopulateGrid();
 	});
@@ -45,9 +33,30 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 		.MinDesiredSlotWidth(40)
 		.MinDesiredSlotHeight(40);
 
+	TSharedPtr<STextBlock> GameOutcomeText =
+		SNew(STextBlock)
+		.Justification(ETextJustify::Type::Center)
+		.ColorAndOpacity(FColor::Red)
+		.Font(FMinesweeperGameUIStyle::Get().GetWidgetStyle<FTextBlockStyle>(FName("MinesweeperGameUI.TimerDisplayStyle")).Font);
+
+	// When the play begins, reset the game outcome text.
+	_gameSession->OnBeginPlay.AddLambda([GameOutcomeText]() {
+		GameOutcomeText->SetText(FText::FromString(""));
+	});
+
+	// When the player wins the game, update the game outcome text.
+	_gameSession->OnGameWin.AddLambda([GameOutcomeText]() {
+		GameOutcomeText->SetText(FText::FromString("You Won!"));
+	});
+
+	// When the player loses the game, update the game outcome text.
+	_gameSession->OnGameOver.AddLambda([GameOutcomeText]() {
+		GameOutcomeText->SetText(FText::FromString("You Lost!"));
+	});
+
 	TSharedPtr<SMinesweeperMainGameArea> GameViewBox;
 	TSharedPtr<SMinesweeperGameSettings> SettingsBox;
-	
+
 	SAssignNew(GameViewBox, SMinesweeperMainGameArea)
 	.GameSession(_gameSession)
 	.OnReplayButtonClicked_Lambda([this]() {
@@ -104,8 +113,27 @@ void SMinesweeperGameBoard::Construct(const FArguments& InArgs){
 			.VAlign(VAlign_Fill)
 			.FillHeight(1.f)
 			.Padding(0.0f, 0.0f, 20.f, 0.0f)
-			[
-				GameViewBox.ToSharedRef()
+			[				
+				SNew(SOverlay)
+				+ SOverlay::Slot()
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Fill)
+				[
+					GameViewBox.ToSharedRef()
+				]
+				+ SOverlay::Slot()
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Fill)
+				[
+					SNew(SScaleBox)
+					.StretchDirection(EStretchDirection::Both)
+					.Stretch(EStretch::ScaleToFit)
+					.Visibility(EVisibility::HitTestInvisible)
+					.Content()
+					[
+						GameOutcomeText.ToSharedRef()
+					]
+				]
 			]
 		];
 
