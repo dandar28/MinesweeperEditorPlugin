@@ -3,6 +3,8 @@ Unreal Engine 4's plugin which adds a button to the editor's toolbar which allow
 
 ### Game Play Info
 
+***
+
 ##### UX and Commands
 
 For opening the game window, you can click on the MinesweeperEditorPlugin button on the toolbar.
@@ -87,6 +89,8 @@ When the Stop button is clicked:
 
 When closing the main game window, the current game session is shut down.
 
+***
+
 ### Media
 
 Here are some videos updated at release 1.0 :
@@ -102,6 +106,8 @@ https://user-images.githubusercontent.com/6795220/137693792-99d25e5e-2ca9-488e-9
 
 https://user-images.githubusercontent.com/6795220/137693807-1837d6ed-78ae-461b-821e-084690101e6d.mp4
 
+***
+
 ### Implementation Dev-Notes
 
 Development time:
@@ -114,6 +120,8 @@ Few bugs have emerged during the development and have been fixed easily.
 
 No difficulties came up from the development, it was an easy task and fun to implement.
 
+***
+
 ### Known Issues
 
 - With big Width X Height dimensions, the scaling gets bad.
@@ -123,6 +131,8 @@ No difficulties came up from the development, it was an easy task and fun to imp
 - If the Replay is playing and the user closes the window, the Replay keeps doing its stuff until the timer finishes.
   - The timer has no conditions for exiting while waiting for next actions.
   - At least, actions are properly skipped on game thread when the game session has been shut down, in order to prevent potential crashes and unwanted executions.
+
+***
 
 ### Missing Scheduled Features (but not required)
 
