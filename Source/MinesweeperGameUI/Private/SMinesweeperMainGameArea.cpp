@@ -146,12 +146,18 @@ void SMinesweeperMainGameArea::Construct(const FArguments& InArgs) {
 			.HAlign(HAlign_Fill)
 			.VAlign(VAlign_Fill)
 			[
-				SNew(SScaleBox)
-				.StretchDirection(EStretchDirection::Both)
-				.Stretch(EStretch::ScaleToFit)
-				.Content()
+				SNew(SBorder)
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Fill)
+				.Clipping(EWidgetClipping::ClipToBoundsAlways)
 				[
-					InArgs._Content.Widget
+					SNew(SScaleBox)
+					.StretchDirection(EStretchDirection::Both)
+					.Stretch(EStretch::ScaleToFit)
+					.Content()
+					[
+						InArgs._Content.Widget
+					]
 				]
 			]
 		]
