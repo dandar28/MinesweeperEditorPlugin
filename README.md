@@ -18,6 +18,8 @@ The game window's UI is divided in two areas:
 - Settings area
 - Main game area
 
+***
+
 **Settings Area**
 
 There are 3 possible setting entries:
@@ -42,6 +44,8 @@ There is also a Custom difficulty option in order to be able to edit the Width, 
 
 Below all the settings there is a Play button for starting the game with the current selected settings.
 
+***
+
 **Main Game Area**
 
 When shown, the main game area contains:
@@ -49,6 +53,8 @@ When shown, the main game area contains:
 - Timer from the beginning of the game being played.
 - Replay button to replay the last played game (enabled only when the game has finished already).
 - Game board matrix with minesweeper cells.
+
+***
 
 **Flow**
 
