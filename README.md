@@ -132,6 +132,13 @@ No difficulties came up from the development, it was an easy task and fun to imp
   - The timer has no conditions for exiting while waiting for next actions.
   - At least, actions are properly skipped on game thread when the game session has been shut down, in order to prevent potential crashes and unwanted executions.
 
+- The FSM is overkill and YAGNI. It would not be needed actually.
+
+- The execution is not optimized.
+  - When a lot of cells are present, it could eventually lag.
+  - The recursive revelation of cells could be made faster.
+  - Sometimes certain operations are done even if unnecessary.
+
 ***
 
 ### Missing Scheduled Features (but not required)
