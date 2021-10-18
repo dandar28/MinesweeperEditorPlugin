@@ -91,23 +91,6 @@ When closing the main game window, the current game session is shut down.
 
 ***
 
-### Media
-
-Here are some videos updated at release 1.0 :
-
-https://user-images.githubusercontent.com/6795220/137693762-b0430ead-73bb-48bd-8233-aab0aa8f1c45.mp4
-
-
-https://user-images.githubusercontent.com/6795220/137693782-449c6262-6af8-48f3-abed-88dd654797ea.mp4
-
-
-https://user-images.githubusercontent.com/6795220/137693792-99d25e5e-2ca9-488e-9b45-2066734b4258.mp4
-
-
-https://user-images.githubusercontent.com/6795220/137693807-1837d6ed-78ae-461b-821e-084690101e6d.mp4
-
-***
-
 ### Implementation Dev-Notes
 
 Development time:
@@ -151,3 +134,52 @@ No difficulties came up from the development, it was an easy task and fun to imp
 - The visual design of certain texts is ugly but it would have been cool if it was more appealing.
 
 - There is no "?" helper button for showing the commands and rules of the game when the user interacts.
+
+***
+
+### Media
+
+Here are some videos updated at release 1.0 :
+
+https://user-images.githubusercontent.com/6795220/137693762-b0430ead-73bb-48bd-8233-aab0aa8f1c45.mp4
+
+
+https://user-images.githubusercontent.com/6795220/137693782-449c6262-6af8-48f3-abed-88dd654797ea.mp4
+
+
+https://user-images.githubusercontent.com/6795220/137693792-99d25e5e-2ca9-488e-9b45-2066734b4258.mp4
+
+
+https://user-images.githubusercontent.com/6795220/137693807-1837d6ed-78ae-461b-821e-084690101e6d.mp4
+
+**Screenshots**
+
+- Initial stage:
+
+![image](https://user-images.githubusercontent.com/6795220/137750975-1a19728a-758f-4d7f-88b3-31c46c07cd2c.png)
+
+- Choosing difficulty (with Custom option):
+
+![image](https://user-images.githubusercontent.com/6795220/137751045-323ddc8e-c3fc-4b1b-9f32-35e91ceb3549.png)
+
+- Gameplay initial layout after Play:
+
+![image](https://user-images.githubusercontent.com/6795220/137751398-83a54d2f-9300-4ed7-ac63-053de202fd51.png)
+
+- Gameplay with flags and question marks:
+
+![image](https://user-images.githubusercontent.com/6795220/137751203-bb684e9c-5d9e-4c84-9125-70b61977980e.png)
+
+![image](https://user-images.githubusercontent.com/6795220/137751960-01f0b66f-0afd-4359-a037-0d5523f927c2.png)
+
+- Game Over screen:
+
+![image](https://user-images.githubusercontent.com/6795220/137751303-07107034-4364-46a7-bf0e-753c8c813f0b.png)
+
+- Game Win screen:
+
+![image](https://user-images.githubusercontent.com/6795220/137751570-5cf5b950-5b7d-4a64-b46b-ca22c3e299b0.png)
+
+- Biggest game board matrix case:
+
+![image](https://user-images.githubusercontent.com/6795220/137751683-79c52cc2-540a-4bae-a0f6-69fd218c2a39.png)
